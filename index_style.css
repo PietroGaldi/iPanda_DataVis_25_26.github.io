@@ -48,6 +48,22 @@ p{
   padding: 0 1em;
 }
 
+.intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.PTS_logo {
+  position: fixed;
+  top: 10em;      
+  right: 20px;    
+  width: 150px;    
+  height: auto;
+}
+
+
+
 .db_descr > ul{
   max-width: 800px;
   margin: 1em auto;
