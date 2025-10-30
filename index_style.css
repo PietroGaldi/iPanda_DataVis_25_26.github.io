@@ -54,6 +54,8 @@ p{
   justify-content: center;
   gap: 1rem;
   max-width: 800px;
+  margin: 1em auto;
+  padding: 0 1em;
 }
 
 

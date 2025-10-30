@@ -2,20 +2,20 @@ document.addEventListener("DOMContentLoaded", () => {
   d3.csv("data/global-energy-substitution.csv").then(rows => {
     console.log("CSV caricato, righe:", rows.length);
 
-    const row2024 = rows.find(
-      d => d.Year === "2024" && d.Entity === "World"
+    // Filter only the rows for 2022, 2023, 2024
+    const rowsSelected = rows.filter(d =>
+        ["2022", "2023", "2024"].includes(d.Year) && d.Entity === "World"
     );
 
-
-    if (!row2024) {
-      console.error("No 2024 row found for World");
-      return;
+    if (rowsSelected.length === 0) {
+        console.error("No rows found for 2022-2024 for World");
+        return;
     }
 
-    const allCols = Object.keys(row2024);
+    const allCols = Object.keys(rowsSelected[0]);
 
     const energyCols = allCols.filter(
-      c => c !== "Entity" && c !== "Code" && c !== "Year"
+        c => c !== "Entity" && c !== "Code" && c !== "Year"
     );
 
     const renameMap = {
@@ -31,11 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
       "Traditional biomass (TWh, substituted energy)": "Biomass"
     };
 
-    const data = energyCols.map(col => ({
-      name: renameMap[col] || col,
-      value: +row2024[col]
-    }));
-
+    const data = energyCols.map(col => {
+        const avgValue =
+            d3.mean(rowsSelected, d => +d[col]);
+        return {
+            name: renameMap[col] || col,
+            value: avgValue
+        };
+    });
 
     const width = 750;
     const height = 550;
@@ -43,15 +46,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    const svg = d3.select("#energy_2024_chart")
+    const svg = d3.select("#energy_22_24_chart")
       .append("svg")
       .attr("width", width)
       .attr("height", height)
-      .style("background", "#f9f9f9")
+      .style("background", "#f9f9f9");
 
     const g = svg.append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
 
     const x = d3.scaleBand()
       .domain(data.map(d => d.name))
@@ -98,10 +100,10 @@ document.addEventListener("DOMContentLoaded", () => {
       .attr("y", 22)
       .attr("text-anchor", "middle")
       .style("font-size", "18px")
-      .text("Primary energy consumption by source globally");
+      .text("Average primary energy consumption by source");
   });
   d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
-    const eurovisionMain = [
+    const euroMain = [
       "Italy",
       "France",
       "Germany",
@@ -116,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const filtered = rows.filter(d =>
-      eurovisionMain.includes(d.Entity) &&
+      euroMain.includes(d.Entity) &&
       (d.Year === "2022" || d.Year === "2023" || d.Year === "2024")
     );
 
@@ -124,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
       d.value = +d["Primary energy consumption per capita (kWh/person)"];
     });
 
-    const countries = eurovisionMain;
+    const countries = euroMain;
     const years = ["2022", "2023", "2024"];
 
 
