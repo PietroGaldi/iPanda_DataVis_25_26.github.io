@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .attr("y", 22)
       .attr("text-anchor", "middle")
       .style("font-size", "18px")
-      .text("Average primary energy consumption by source");
+      .text("Average primary energy consumption by source 2022-2024");
   });
   d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
     const euroMain = [
@@ -250,5 +250,168 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr("alignment-baseline", "middle");
     });
   });
+
+  // Todo:  HEATMAP CO₂ EUROPA
+
+  d3.csv("data/electricity-prod-source-stacked.csv").then(rows => {
+    const targetYears = ["2022", "2023", "2024"];
+    const countries = ["Germany", "France", "United Kingdom", "Italy", "Spain"];
+
+    const filtered = rows.filter(d =>
+      targetYears.includes(d.Year) &&
+      countries.includes(d.Entity)
+    );
+
+    const allCols = Object.keys(filtered[0]);
+    const energyCols = allCols.slice(3); 
+
+
+    const agg = {};
+    filtered.forEach(d => {
+      const c = d.Entity;
+      if (!agg[c]) {
+        agg[c] = {};
+        energyCols.forEach(col => {
+          agg[c][col] = { sum: 0, count: 0 };
+        });
+      }
+      energyCols.forEach(col => {
+        const v = +d[col];
+        if (!isNaN(v)) {
+          agg[c][col].sum += v;
+          agg[c][col].count += 1;
+        }
+      });
+    });
+
+
+    const data = countries.map(country => {
+      const obj = { country };
+      energyCols.forEach(col => {
+        const item = agg[country][col];
+        const mean = item.count > 0 ? item.sum / item.count : 0;
+        obj[col] = mean;
+      });
+      return obj;
+    });
+
+    function extractLabel(colname) {
+      if (colname.toLowerCase().includes("other") && colname.toLowerCase().includes("renew")) {
+        return "Other renewables";
+      }
+      const parts = colname.split("from");
+      if (parts.length > 1) {
+        let label = parts[1].trim();
+        label = label.split("(")[0].trim();
+        return label.charAt(0).toUpperCase() + label.slice(1);
+      }
+      return colname;
+    }
+
+    const labelMap = {};
+    energyCols.forEach(col => {
+      labelMap[col] = extractLabel(col);
+    });
+
+    const width = 750;
+    const height = 520;
+    const margin = { top: 50, right: 180, bottom: 80, left: 90 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    const svg = d3.select("#eu_electricity_stacked")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("background", "#f9f9f9");
+
+    const g = svg.append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const x = d3.scaleBand()
+      .domain(countries)
+      .range([0, innerWidth])
+      .padding(0.25);
+
+    const stackGen = d3.stack()
+      .keys(energyCols);
+
+    const series = stackGen(data); 
+
+    const maxY = d3.max(series[series.length - 1], d => d[1]);
+
+    const y = d3.scaleLinear()
+      .domain([0, maxY])
+      .nice()
+      .range([innerHeight, 0]);
+
+    const color = d3.scaleOrdinal()
+      .domain(energyCols)
+      .range(d3.schemeTableau10);
+
+    const layer = g.selectAll(".layer")
+      .data(series)
+      .enter()
+      .append("g")
+      .attr("class", "layer")
+      .attr("fill", d => color(d.key));
+
+    layer.selectAll("rect")
+      .data(d => d)
+      .enter()
+      .append("rect")
+      .attr("x", d => x(d.data.country))
+      .attr("y", d => y(d[1]))
+      .attr("height", d => y(d[0]) - y(d[1]))
+      .attr("width", x.bandwidth());
+
+    g.append("g")
+      .attr("transform", `translate(0, ${innerHeight})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .attr("transform", "rotate(-25)")
+      .style("text-anchor", "end");
+
+    const yAxis = g.append("g")
+      .call(d3.axisLeft(y));
+
+    yAxis.append("text")
+      .attr("x", -innerHeight / 2)
+      .attr("y", -60)
+      .attr("transform", "rotate(-90)")
+      .attr("text-anchor", "middle")
+      .style("font-size", "13px")
+      .style("fill", "#333")
+      .text("Average electricity production (2022-2024)");
+
+    svg.append("text")
+      .attr("x", width / 2)
+      .attr("y", 28)
+      .attr("text-anchor", "middle")
+      .style("font-size", "18px")
+      .text("Average electricity production by source, 2022-2024");
+
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width - 165}, ${60})`);
+
+    energyCols.forEach((col, i) => {
+      const lg = legend.append("g")
+        .attr("transform", `translate(0, ${i * 20})`);
+
+      lg.append("rect")
+        .attr("width", 14)
+        .attr("height", 14)
+        .attr("fill", color(col));
+
+      lg.append("text")
+        .attr("x", 20)
+        .attr("y", 11)
+        .text(labelMap[col])
+        .style("font-size", "11px")
+        .attr("alignment-baseline", "middle");
+    });
+  });
+
+  // Todo: WAFFLE CHART: Fossil fuels share (coal, gas, oil) ===
 
 });
