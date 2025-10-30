@@ -7,7 +7,7 @@ body {
   font-family: 'Fira Sans', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f9fafb;
+  background-color: #f9fbfa;
   color: #222;
   line-height: 1.6;
   display: flex;
@@ -48,7 +48,7 @@ p{
   padding: 0 1em;
 }
 
-.intro {
+.list_img{
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -64,12 +64,24 @@ p{
 }
 
 .db_descr > ul{
+  align-items: center;
+  justify-content: center;
+  gap: 2em;
+  
   max-width: 800px;
   margin: 1em auto;
-  font-size: 1.1em;
-  text-align: justify;
   padding: 0 1em;
-  padding-left: 8rem;
+}
+
+.list_img ul {
+  flex: 1;
+  margin: 0;
+  padding-left: 2em;
+}
+
+.env_logo {
+  width: 150px;
+  height: auto;
 }
 
 footer {
