@@ -48,21 +48,25 @@ p{
   padding: 0 1em;
 }
 
-.intro {
+.list_img{
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-
-
-.db_descr > ul{
+  align-items: center;
+  justify-content: center; /* centers both elements within the same width area */
+  gap: 2em; /* spacing between list and image */
   max-width: 800px;
   margin: 1em auto;
-  font-size: 1.1em;
-  text-align: justify;
   padding: 0 1em;
-  padding-left: 8rem;
+}
+
+.list_img ul {
+  flex: 1;
+  margin: 0;
+  padding-left: 2em;
+}
+
+.env_logo {
+  width: 150px;
+  height: auto;
 }
 
 footer {
