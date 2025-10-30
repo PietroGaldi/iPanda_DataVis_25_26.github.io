@@ -55,6 +55,13 @@ p{
 }
 
 
+.barplot {  
+  max-width: 50rem;
+  margin: 2em auto;
+  padding: 1em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
 
 .db_descr > ul{
   max-width: 800px;
