@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Grouped barchart on per-capita energy use in main european countries (considering 2022-2024)
   d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
-    const euroMain = [
+    const countries = [
       "Italy",
       "France",
       "Germany",
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const filtered = rows.filter(d =>
-      euroMain.includes(d.Entity) &&
+      countries.includes(d.Entity) &&
       (d.Year === "2022" || d.Year === "2023" || d.Year === "2024")
     );
 
@@ -129,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
       d.value = +d["Primary energy consumption per capita (kWh/person)"];
     });
 
-    const countries = euroMain;
     const years = ["2022", "2023", "2024"];
 
 
@@ -254,12 +253,199 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Todo:  HEATMAP CO₂ EUROPA
+  //Heatmap of CO2 emission per capita in main European countries, considering years 2021-2023
+  d3.csv("data/co-emissions-per-capita-europe.csv", function(d) {
+
+      const co2Col = "Annual_CO2_emissions";
+      const yearValue = d.Year ? String(d.Year).trim() : null; 
+      const countryValue = d.Entity ? d.Entity.trim() : null;
+      const co2Value = +d[co2Col];
+
+      if (isNaN(co2Value) || !countryValue || !yearValue) return null;
+
+      return {
+          Country: countryValue,
+          Year: yearValue,
+          CO2_per_capita: co2Value
+      };
+  }).then(rows => {
+
+      const countries = [
+        "Italy",
+        "France",
+        "Germany",
+        "Spain",
+        "United Kingdom",
+        "Sweden",
+        "Norway",
+        "Netherlands",
+        "Greece",
+        "Switzerland"
+      ];
+
+      const years = ["2021", "2022", "2023"]; 
+
+      const heatmapData = rows.filter(d =>
+          countries.includes(d.Country) &&
+          years.includes(d.Year) 
+      );
+
+      const sortedData = countries.flatMap(country =>
+          years.map(year =>
+              heatmapData.find(d => d.Country === country && d.Year === year)
+          ).filter(d => d)
+      );
+
+      const margin = { top: 60, right: 100, bottom: 40, left: 120 };
+      const width = 800 - margin.left - margin.right;
+      const height = 400 - margin.top - margin.bottom;
+      const svg = d3.select("#co2_heatmap")
+          .append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      const xScale = d3.scaleBand()
+          .domain(years)
+          .range([0, width])
+          .padding(0); 
+
+      const yScale = d3.scaleBand()
+          .domain(countries) 
+          .range([0, height])
+          .padding(0); 
+          
+      const minCO2 = d3.min(sortedData, d => d.CO2_per_capita);
+      const maxCO2 = d3.max(sortedData, d => d.CO2_per_capita);
+      const flareColors = [
+        "#410a26",
+        "#631536",
+        "#862643",
+        "#a63e52",
+        "#c45b63",
+        "#db7c7e",
+        "#e39e9c",
+        "#ecc0ba"
+      ];
+      const colorScale = d3.scaleSequential() 
+          .domain([maxCO2, minCO2])
+          .interpolator(d3.interpolateRgbBasis(flareColors)); 
+
+      svg.selectAll(".cell")
+          .data(sortedData)
+          .enter()
+          .append("rect")
+          .attr("class", "cell")
+          .attr("x", d => xScale(d.Year))
+          .attr("y", d => yScale(d.Country))
+          .attr("width", xScale.bandwidth())
+          .attr("height", yScale.bandwidth())
+          .style("fill", d => colorScale(d.CO2_per_capita));
+
+      svg.append("g")
+          .attr("transform", `translate(0, ${height})`)
+          .call(d3.axisBottom(xScale).tickSize(0))
+          .select(".domain").remove(); 
+
+      svg.append("g")
+          .call(d3.axisLeft(yScale).tickSize(0))
+          .select(".domain").remove(); 
+
+      svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", -30) 
+          .attr("text-anchor", "middle")
+          .style("font-size", "18px")
+          .text("CO2 emissions per capita, 2021-2023");
+
+      svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", height + 35)
+          .attr("text-anchor", "middle")
+          .style("font-size", "13px")
+          .text("Year");
+
+      svg.append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", -margin.left + 20)
+          .attr("x", -(height / 2))
+          .attr("text-anchor", "middle")
+          .style("font-size", "13px")
+          .text("Country");
+
+      const defs = svg.append("defs");
+      const linearGradient = defs.append("linearGradient")
+          .attr("id", "linear-gradient")
+          .attr("x1", "0%")
+          .attr("y1", "0%")
+          .attr("x2", "0%") 
+          .attr("y2", "100%");
+
+      linearGradient.selectAll("stop")
+          .data(colorScale.ticks(5).map((t, i, n) => ({ 
+               offset: `${100 * i / (n.length - 1)}%`, 
+               color: colorScale(t) 
+          })))
+          .enter().append("stop")
+          .attr("offset", d => d.offset)
+          .attr("stop-color", d => d.color);
+
+      const legendX = width + 42;
+      const legendY = 0;
+      const legendWidth = 20;
+      const legendHeight = height;
+
+      const legendGroup = svg.append("g")
+          .attr("transform", `translate(${legendX}, ${legendY})`);
+
+      legendGroup.append("rect")
+          .attr("width", legendWidth)
+          .attr("height", legendHeight)
+          .style("fill", "url(#linear-gradient)");
+
+      const legendScale = d3.scaleLinear()
+          .domain([maxCO2, minCO2])
+          .range([0, legendHeight]);
+
+      const legendAxis = d3.axisRight(legendScale)
+          .ticks(5)
+          .tickSize(3);
+
+      legendGroup.append("g")
+          .attr("class", "legend-axis")
+          .attr("transform", `translate(${legendWidth}, 0)`)
+          .call(legendAxis);
+
+      legendGroup.append("text")
+          .attr("x", legendWidth / 2)
+          .attr("y", legendHeight + 20)
+          .attr("text-anchor", "middle")
+          .style("font-size", "13px")
+          .selectAll("tspan")
+          .data(["CO2 emissions", "(tons per capita)"])
+          .enter()
+          .append("tspan")
+          .attr("x", legendWidth / 2)
+          .attr("dy", (d, i) => i * 15)
+          .text(d => d);
+  });
 
   // Stacked barchart on electricity production by source in main european countries (considering 2022-2024)
   d3.csv("data/electricity-prod-source-stacked.csv").then(rows => {
     const targetYears = ["2022", "2023", "2024"];
-    const countries = ["Germany", "France", "United Kingdom", "Italy", "Spain"];
+    const countries = [
+      "Italy",
+      "France",
+      "Germany",
+      "Spain",
+      "United Kingdom",
+      "Sweden",
+      "Norway",
+      "Netherlands",
+      "Greece",
+      "Switzerland"
+    ];
 
     const filtered = rows.filter(d =>
       targetYears.includes(d.Year) &&
@@ -317,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
       labelMap[col] = extractLabel(col);
     });
 
-    const width = 750;
+    const width = 950;
     const height = 520;
     const margin = { top: 50, right: 180, bottom: 80, left: 90 };
     const innerWidth = width - margin.left - margin.right;
@@ -419,7 +605,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Waffle charts on fossil fuel electricity production in main european countries (considering 2022-2024)
   d3.csv("data/electricity-prod-source-stacked.csv").then(rows => {
     const years = ["2022", "2023", "2024"];
-    const countries = ["Germany", "France", "United Kingdom", "Italy", "Spain"];
+    const countries = [
+      "Italy",
+      "France",
+      "Germany",
+      "Spain",
+      "United Kingdom",
+      "Sweden",
+      "Norway",
+      "Netherlands",
+      "Greece",
+      "Switzerland"
+    ];
 
     const coalCol = "Electricity from coal - TWh (adapted for visualization of chart electricity-prod-source-stacked)";
     const oilCol = "Electricity from oil - TWh (adapted for visualization of chart electricity-prod-source-stacked)";
@@ -442,15 +639,9 @@ document.addEventListener("DOMContentLoaded", () => {
       countries.includes(d.Entity)
     );
 
-    // compute total fossil fuel percentages per country
     const countryStats = countries.map(country => {
       const rowsC = filtered.filter(d => d.Entity === country);
-      let totals = {
-        coal: 0,
-        oil: 0,
-        gas: 0,
-        total: 0
-      };
+      let totals = { coal: 0, oil: 0, gas: 0, total: 0 };
 
       rowsC.forEach(r => {
         const c = +r[coalCol];
@@ -480,17 +671,21 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     });
 
-    // waffle chart parameters 
     const cellSize = 13;
     const cellGap = 2;
-    const waffleCols = 10
+    const waffleCols = 10;
     const waffleRows = 10;
     const waffleWidth = waffleCols * (cellSize + cellGap);
     const waffleHeight = waffleRows * (cellSize + cellGap);
 
-    const width = 950;
-    const height = 420;
-    const margin = { top: 50, right: 30, bottom: 30, left: 30 };
+    const numCols = 5;
+    const numRows = 2;
+    const xSpacing = waffleWidth + 40;
+    const ySpacing = waffleHeight + 90;
+
+    const width = numCols * xSpacing + 80;
+    const height = numRows * ySpacing + 140;
+    const margin = { top: 50, right: 30, bottom: 50, left: 30 };
 
     const svg = d3.select("#eu_coal_waffle")
       .append("svg")
@@ -510,17 +705,18 @@ document.addEventListener("DOMContentLoaded", () => {
       gas: "rgb(255, 157, 167)"
     };
 
-    const xScale = d3.scaleBand()
-      .domain(countryStats.map(d => d.country))
-      .range([margin.left, width - margin.right])
-      .padding(0.35);
-
     const countryG = svg.selectAll(".country-waffle")
       .data(countryStats)
       .enter()
       .append("g")
       .attr("class", "country-waffle")
-      .attr("transform", d => `translate(${xScale(d.country)}, 70)`);
+      .attr("transform", (d, i) => {
+        const col = i % numCols;
+        const row = Math.floor(i / numCols);
+        const x = margin.left + col * xSpacing;
+        const y = 60 + row * ySpacing;
+        return `translate(${x}, ${y})`;
+      });
 
     countryG.each(function (d) {
       const g = d3.select(this);
@@ -542,12 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
           fill = colors.gas;
         }
 
-        return {
-          i,
-          row,
-          col,
-          fill
-        };
+        return { i, row, col, fill };
       });
 
       g.append("rect")
@@ -592,9 +783,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .text(totalFossil.toFixed(1) + "% fossil");
     });
 
-    const legend = svg.append("g")
-      .attr("transform", `translate(${width - 150}, 280)`);
-
     const legendData = [
       { label: "Coal", color: colors.coal },
       { label: "Oil", color: colors.oil },
@@ -602,21 +790,35 @@ document.addEventListener("DOMContentLoaded", () => {
       { label: "Other sources", color: "#eeeeee" }
     ];
 
+    const legendSpacing = 100;
+    const legendWidth = legendData.length * legendSpacing;
+    const legendX = (width - legendWidth) / 2;
+    const legendY = height - 60;
+
+    const legend = svg.append("g")
+      .attr("transform", `translate(${legendX}, ${legendY})`);
+
     legendData.forEach((d, i) => {
       const lg = legend.append("g")
-        .attr("transform", `translate(0, ${i * 20})`);
+        .attr("transform", `translate(${i * legendSpacing}, 0)`);
+
       lg.append("rect")
         .attr("width", 14)
         .attr("height", 14)
-        .attr("fill", d.color);
+        .attr("fill", d.color)
+        .attr("y", -7);
+
       lg.append("text")
         .attr("x", 20)
-        .attr("y", 11)
+        .attr("y", 4)
         .text(d.label)
         .style("font-size", "12px")
         .attr("alignment-baseline", "middle");
     });
   });
+
+
+
 
 
 });
