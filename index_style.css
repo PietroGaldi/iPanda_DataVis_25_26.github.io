@@ -44,7 +44,7 @@ p{
   max-width: 800px;
   margin: 1em auto;
   font-size: 1.1em;
-  text-align: justify;
+  text-align: justify left;
   padding: 0 1em;
 }
 
@@ -84,14 +84,13 @@ p{
   border-radius: 8px;
 }
 
-.db_descr > ul{
-  align-items: center;
-  justify-content: center;
-  gap: 2em;
-  
+.waffle_ul {
   max-width: 800px;
   margin: 1em auto;
+  font-size: 1.1em;
+  text-align: justify;
   padding: 0 1em;
+  list-style-position: outside;
 }
 
 .list_img ul {
@@ -104,6 +103,15 @@ p{
   width: 150px;
   height: auto;
 }
+
+svg text {
+  font-family: 'Fira Sans', sans-serif;
+}
+
+svg {
+  font-family: 'Fira Sans', sans-serif;
+}
+
 
 footer {
   text-align: center;

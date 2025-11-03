@@ -34,26 +34,65 @@
     &nbsp;
     <div class="sec1">
      <h1>What happened in the last years?</h1>
-     <h2>An Overview of Energy Sources and Emissions in Recent Years</h2>
-     <p>Brief explenation of what there is in this section</p>
+     <h2>An overview of energy sources and emissions in recent years</h2>
+     <p>
+      This section provides an overview of the recent evolution of global and European energy systems between 2021 and 2024.<br> 
+      It examines how total energy consumption has changed over time and how different sources like fossil fuels, renewables, and nuclear, contribute to the global energy mix.<br>
+      Particular attention is given to the main European countries, comparing their energy use per person and the composition of their electricity generation.<br>
+      Finally, the section highlights the trend in CO<sub>2</sub> emissions across Europe, showing how national energy choices have shaped their environmental impact in recent years.
+    </p>
     </div>
   </main>
 
   <div class="barplot" id="energy_22_24_chart"></div>
-  <p>comment barplot</p>
+  <p>Global energy production remains dominated by fossil fuels (gas, oil, and coal) each exceeding 40,000 TWh between 2022 and 2024.<br>
+    It can be observed that the main sources of global energy are fossil fuels: gas, oil, and coal. 
+    Each of these contributes more than 40,000 TWh, exceeding by more than four times the energy production of any other source.</p>
   &nbsp;
   <div class="barplot" id="energy_europe_grouped"></div>
-  <p>comment grouped barplot</p>
+  <p>Energy use per person varies widely across Europe.<br> 
+     It is immediately evident that the highest consumption levels are found in Norway, 
+     the northernmost and coldest country among those shown, where heating is likely to be used more extensively. <br>
+     Applying the same reasoning, lower consumption levels can be observed in southern countries 
+     such as Spain, Greece, and Italy, while higher values are recorded in northern countries 
+     such as Sweden and the Netherlands. <br>
+     The United Kingdom, on the other hand, exhibits one of the lowest consumption levels and 
+     does not follow the general pattern observed for northern countries. <br>
+     No clear trend can be identified looking at the variations across the three years, 
+     as consumption increases in some countries while decreasing in others.</p>
   &nbsp;
   <div class="heatmap" id="co2_heatmap"></div>
-  <p>comment heatmap</p>
+  <p>CO<sub>2</sub> emissions per capita are higher in Germany, 
+    Norway, and the Netherlands, while those with the lowest emissions are Sweden, France 
+    and Switzerland. <br>However, all the countries represented exhibit a declining trend over the 
+    past three years.</p>
   &nbsp;
   <div class="barplot" id="eu_electricity_stacked"></div>
-  <p>comment stacked barchart</p>
+  <p>Electricity generation across Europe reveals striking contrasts in national energy strategies.<br>
+    France and Germany record the highest levels of electricity production among the countries considered. In particular, France is strongly dominated by nuclear energy, 
+    while Germany displays a more diversified energy mix, with significant contributions from coal, wind, and gas, as well as a substantial share of renewable sources.<br>
+    Italy shows medium-to-high average production levels, largely reliant on gas and, to a lesser extent, on renewable sources, with an almost complete absence of nuclear power.<br>
+    Nordic countries such as Norway and Sweden have a strong hydroelectric component; Norway, in particular, generates nearly all of its electricity from hydropower.<br>
+    The United Kingdom and Spain exhibit a more balanced energy mix, with considerable shares of wind and gas.
+    Countries with lower total production, such as Greece, Switzerland, and the Netherlands, still display diversified energy mix, although at significantly lower levels than France and Germany.</p>
   &nbsp;
   <div class="waffleplot" id="eu_coal_waffle"></div>
-  <p>comment wafflecharts</p>
-
+  <p>The share of fossil fuels in electricity generation differs sharply across Europe.<br>
+    Each square represents a fraction of total electricity production, distinguishing fossil-based sources from all other sources.<br>
+    This visualization highlights a marked heterogeneity in the usage of fossil fuel among European electricity systems.
+    Countries without nuclear power and with limited hydropower resources are the most dependent on natural gas.
+    By contrast, countries with abundant hydropower or strong nuclear capacity have almost eliminated fossil fuels from their electricity mix.<br><br>
+    On the basis of these considerations, European countries can be classified into three main groups:
+  </p>
+  <ul class="waffle_ul">
+    <li><b>Countries with electricity production still heavily reliant on fossil fuels:</b><br>
+    Italy (56.9%), the Netherlands (50.7%), and Greece (52.3%) generate more than half of their electricity from gas, coal, or oil; natural gas is the dominant source, particularly in Italy and the Netherlands.</li>
+    <li><b>Countries in transition, with a still significant fossil share:</b><br>
+    Germany (46.0%), United Kingdom (38.8%), Spain (29.4%) have reduced coal use, but gas continues to play a major role.</li>
+    <li><b>Countries that are almost fully decarbonised:</b><br>
+    France (8.7%), Switzerland (2.5%), Sweden (1.5%), Norway (1.5%) show minimal dependence on fossil fuels and their
+     electricity production is dominated by nuclear power (France, Switzerland) or hydropower (Norway, Sweden).</li>
+  </ul>  
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="comparing_categories.js"></script>

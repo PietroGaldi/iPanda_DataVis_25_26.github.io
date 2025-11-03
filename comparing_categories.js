@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .attr("y", 22)
       .attr("text-anchor", "middle")
       .style("font-size", "18px")
-      .text("Average primary energy consumption by source 2022-2024");
+      .text("Average primary energy consumption by source (2022-2024)");
   });
   
   // Grouped barchart on per-capita energy use in main european countries (considering 2022-2024)
@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .attr("y", 25)
       .attr("text-anchor", "middle")
       .style("font-size", "18px")
-      .text("Per-capita energy consume in main european countries");
+      .text("Per-capita energy consume in main european countries (2022-2024)");
 
 
     const legend = svg.append("g")
@@ -357,7 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .attr("y", -30) 
           .attr("text-anchor", "middle")
           .style("font-size", "18px")
-          .text("CO2 emissions per capita, 2021-2023");
+          .text("CO2 emissions per capita (2021-2023)");
 
       svg.append("text")
           .attr("x", width / 2)
@@ -572,14 +572,14 @@ document.addEventListener("DOMContentLoaded", () => {
       .attr("text-anchor", "middle")
       .style("font-size", "13px")
       .style("fill", "#333")
-      .text("Average electricity production (2022-2024)");
+      .text("Average electricity production");
 
     svg.append("text")
       .attr("x", width / 2)
       .attr("y", 28)
       .attr("text-anchor", "middle")
       .style("font-size", "18px")
-      .text("Average electricity production by source, 2022-2024");
+      .text("Average electricity production by source (2022-2024)");
 
     const legend = svg.append("g")
       .attr("transform", `translate(${width - 165}, ${60})`);
@@ -697,7 +697,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .attr("y", 26)
       .attr("text-anchor", "middle")
       .style("font-size", "18px")
-      .text("Electricity production from fossil fuels, 2022-2024");
+      .text("Electricity production from fossil fuels (2022-2024)");
 
     const colors = {
       coal: "rgb(156, 117, 95)",
