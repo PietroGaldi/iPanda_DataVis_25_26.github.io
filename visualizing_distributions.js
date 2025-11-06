@@ -127,28 +127,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const title = svg.append("text")
-          .attr("x", width / 2)
-          .attr("y", 24)
-          .attr("text-anchor", "middle")
-          .style("font-size", "18px");
+            .attr("x", width / 2)
+            .attr("y", 24)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px");
 
         title.append("tspan")
-          .text("Renewable ")
-          .attr("fill", "#2ca02c")
-          .style("font-weight", "600");
+            .text("Renewable ")
+            .attr("fill", "#2ca02c")
+            .style("font-weight", "600");
 
         title.append("tspan")
-          .text("vs ")
-          .attr("fill", "#333");
+            .text("vs ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Non-Renewable ")
-          .attr("fill", "#1f77b4")
-          .style("font-weight", "600");
+            .text("Non-Renewable ")
+            .attr("fill", "#1f77b4")
+            .style("font-weight", "600");
 
         title.append("tspan")
-          .text("electricity production (2000-2024)")
-          .attr("fill", "#333");
+            .text("electricity production (2000-2024)")
+            .attr("fill", "#333");
 
     });
 
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(d => Number.isFinite(d.year) && Number.isFinite(d.value));
 
         if (!data.length) {
-            console.error("Dati non trovati per Norway/Switzerland/Sweden");
+            console.error("Data not found for Norway/Switzerland/Sweden");
             return;
         }
 
@@ -272,6 +272,140 @@ document.addEventListener("DOMContentLoaded", () => {
             .text("Variation in energy use per capita - Norway, Switzerland, Sweden by decade");
 
     });
+
+    d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
+        const COUNTRIES = [
+            "Italy", "France", "Germany", "Spain", "United Kingdom",
+            "Sweden", "Norway", "Netherlands", "Greece", "Switzerland"
+        ];
+
+        const candidates = [
+            "Annual CO₂ emissions (per capita)",
+            "Annual CO2 emissions (per capita)",
+            "Annual_CO2_emissions",
+            "Annual CO₂ emissions",
+            "Annual CO2 emissions"
+        ];
+        const cols = Object.keys(rows[0] || {});
+        const COL = candidates.find(c => cols.includes(c));
+        if (!COL) {
+            console.error("Column not found", cols);
+            return;
+        }
+
+        const toNum = v => {
+            if (v == null) return NaN;
+            const s = String(v).replace(/[^\d.+\-eE]/g, "");
+            return parseFloat(s);
+        };
+
+        const data = rows
+            .filter(d => COUNTRIES.includes(d.Entity) && +d.Year >= 2000)
+            .map(d => ({
+                country: d.Entity,
+                year: +d.Year,
+                value: toNum(d[COL])
+            }))
+            .filter(d => Number.isFinite(d.value));
+
+        const grouped = d3.groups(data, d => d.country)
+            .map(([country, arr]) => {
+                const vals = arr.map(d => d.value).sort(d3.ascending);
+                const q1 = d3.quantile(vals, 0.25);
+                const med = d3.quantile(vals, 0.5);
+                const q3 = d3.quantile(vals, 0.75);
+                const iqr = q3 - q1;
+                const lowFence = q1 - 1.5 * iqr;
+                const upFence = q3 + 1.5 * iqr;
+                const min = d3.min(vals.filter(v => v >= lowFence)) ?? d3.min(vals);
+                const max = d3.max(vals.filter(v => v <= upFence)) ?? d3.max(vals);
+                const outliers = arr.filter(d => d.value < min || d.value > max);
+                return { country, vals, stats: { q1, med, q3, min, max }, outliers };
+            })
+            .sort((a, b) => COUNTRIES.indexOf(a.country) - COUNTRIES.indexOf(b.country));
+
+        const width = 950, height = 520;
+        const margin = { top: 48, right: 28, bottom: 100, left: 80 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const svg = d3.select("#co2_boxplot").append("svg")
+            .attr("width", width).attr("height", height)
+            .style("background", "#f9f9f9");
+
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const x = d3.scaleBand().domain(COUNTRIES).range([0, innerW]).padding(0.35);
+        const ymax = d3.max(grouped.flatMap(gd => gd.vals)) || 1;
+        const y = d3.scaleLinear().domain([0, ymax * 1.05]).nice().range([innerH, 0]);
+
+        const boxW = Math.max(14, x.bandwidth());
+
+        const gCountry = g.selectAll(".bp").data(grouped).enter()
+            .append("g").attr("class", "bp")
+            .attr("transform", d => `translate(${x(d.country)},0)`);
+
+        gCountry.append("line")
+            .attr("x1", boxW / 2).attr("x2", boxW / 2)
+            .attr("y1", d => y(d.stats.min)).attr("y2", d => y(d.stats.max))
+            .attr("stroke", "#444");
+
+        gCountry.append("rect")
+            .attr("x", 0).attr("width", boxW)
+            .attr("y", d => y(d.stats.q3))
+            .attr("height", d => Math.max(1, y(d.stats.q1) - y(d.stats.q3)))
+            .attr("fill", "#87CEEB")
+            .attr("stroke", "#333");
+
+        gCountry.append("line")
+            .attr("x1", 0).attr("x2", boxW)
+            .attr("y1", d => y(d.stats.med)).attr("y2", d => y(d.stats.med))
+            .attr("stroke", "#000").attr("stroke-width", 1.6);
+
+        gCountry.append("line")
+            .attr("x1", boxW * 0.25).attr("x2", boxW * 0.75)
+            .attr("y1", d => y(d.stats.max)).attr("y2", d => y(d.stats.max))
+            .attr("stroke", "#444");
+        gCountry.append("line")
+            .attr("x1", boxW * 0.25).attr("x2", boxW * 0.75)
+            .attr("y1", d => y(d.stats.min)).attr("y2", d => y(d.stats.min))
+            .attr("stroke", "#444");
+
+        const jitter = d3.randomNormal.source(d3.randomLcg(42))(0, boxW * 0.08);
+        gCountry.selectAll("circle.out")
+            .data(d => d.outliers)
+            .enter().append("circle")
+            .attr("class", "out")
+            .attr("cx", () => boxW / 2 + jitter())
+            .attr("cy", d => y(d.value))
+            .attr("r", 2)
+            .attr("fill", "#c0392b")
+            .attr("opacity", 0.8);
+
+        g.append("g")
+            .attr("transform", `translate(0,${innerH})`)
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .attr("transform", "rotate(-28)")
+            .style("text-anchor", "end")
+            .style("font-size", "11px");
+
+        g.append("g")
+            .call(d3.axisLeft(y))
+            .append("text")
+            .attr("x", -innerH / 2).attr("y", -55)
+            .attr("transform", "rotate(-90)")
+            .attr("text-anchor", "middle")
+            .style("font-size", "13px").style("fill", "#333")
+            .text("CO2 per capita (tons)");
+
+        svg.append("text")
+            .attr("x", width / 2).attr("y", 26)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px")
+            .text("CO2 Emissions per Capita - Distribution by Country from 2000");
+    });
+
 
 
 
