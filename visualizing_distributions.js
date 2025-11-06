@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .attr("x", d => x(Math.min(0, d.renew)))
                 .attr("width", d => Math.abs(x(d.renew) - x(0)))
                 .attr("height", y.bandwidth())
-                .attr("fill", "green");
+                .attr("fill", "#2ca02c");
 
             g.selectAll("rect.nonren")
                 .data(arr)
@@ -123,15 +123,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 .attr("x", x(0))
                 .attr("width", d => Math.abs(x(d.nonren) - x(0)))
                 .attr("height", y.bandwidth())
-                .attr("fill", "#232B49");
+                .attr("fill", "#1f77b4");
         });
 
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 24)
-            .attr("text-anchor", "middle")
-            .style("font-size", "18px")
-            .text("Renewable vs Non-Renewable electricity production (2000-2024)");
+        const title = svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", 24)
+          .attr("text-anchor", "middle")
+          .style("font-size", "18px");
+
+        title.append("tspan")
+          .text("Renewable ")
+          .attr("fill", "#2ca02c")
+          .style("font-weight", "600");
+
+        title.append("tspan")
+          .text("vs ")
+          .attr("fill", "#333");
+
+        title.append("tspan")
+          .text("Non-Renewable ")
+          .attr("fill", "#1f77b4")
+          .style("font-weight", "600");
+
+        title.append("tspan")
+          .text("electricity production (2000-2024)")
+          .attr("fill", "#333");
+
     });
 
     d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
