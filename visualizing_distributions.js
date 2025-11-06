@@ -134,6 +134,127 @@ document.addEventListener("DOMContentLoaded", () => {
             .text("Renewable vs Non-Renewable electricity production (2000-2024)");
     });
 
+    d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
+        const COUNTRIES = ["Norway", "Switzerland", "Sweden"];
+        const COL = "Primary energy consumption per capita (kWh/person)";
+
+        const data = rows
+            .filter(d => COUNTRIES.includes(d.Entity))
+            .map(d => ({ country: d.Entity, year: +d.Year, value: +d[COL] }))
+            .filter(d => Number.isFinite(d.year) && Number.isFinite(d.value));
+
+        if (!data.length) {
+            console.error("Dati non trovati per Norway/Switzerland/Sweden");
+            return;
+        }
+
+        const decadeOf = y => Math.floor(y / 10) * 10;
+        const decades = Array.from(new Set(data.map(d => decadeOf(d.year)))).sort((a, b) => a - b);
+
+        const vmin = d3.min(data, d => d.value);
+        const vmax = d3.max(data, d => d.value);
+        const pad = (vmax - vmin) * 0.05 || 1;
+        const xDomain = [vmin - pad, vmax + pad];
+
+        const mean = arr => d3.mean(arr);
+        const std = arr => {
+            const m = mean(arr);
+            const v = d3.mean(arr.map(x => (x - m) * (x - m)));
+            return Math.sqrt(v || 0);
+        };
+        const gaussian = (x, mu, sigma) => Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+
+        const byDecadeCountry = d3.rollup(
+            data,
+            v => v.map(d => d.value),
+            d => decadeOf(d.year),
+            d => d.country
+        );
+
+        const width = 860, height = 400;
+        const margin = { top: 52, right: 56, bottom: 62, left: 100 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const svg = d3.select("#nch_se_percap_ridge")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("background", "#f9f9f9");
+
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const colors = { "Norway": "#e67e22", "Switzerland": "#c0392b", "Sweden": "steelblue" };
+        const x = d3.scaleLinear().domain(xDomain).range([0, innerW]);
+
+        const offsetStep = 42;
+        const ridgeHeight = 28;
+        const xVals = d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / 400);
+
+        decades.forEach((dec, i) => {
+            const valsNO = byDecadeCountry.get(dec)?.get("Norway") || [];
+            const valsCH = byDecadeCountry.get(dec)?.get("Switzerland") || [];
+            const valsSE = byDecadeCountry.get(dec)?.get("Sweden") || [];
+            if (!valsNO.length && !valsCH.length && !valsSE.length) return;
+
+            const stats = [
+                { key: "Norway", vals: valsNO },
+                { key: "Switzerland", vals: valsCH },
+                { key: "Sweden", vals: valsSE }
+            ].map(({ key, vals }) => {
+                if (!vals.length) return { key, m: null, s: null, y: null };
+                const m = mean(vals);
+                const s = std(vals) || Math.max(0.05 * m, 1);
+                const y = xVals.map(v => gaussian(v, m, s));
+                return { key, m, s, y };
+            });
+
+            const yMax = d3.max(stats.map(s => s.y ? d3.max(s.y) : 0)) || 1;
+            const yScale = d3.scaleLinear().domain([0, yMax]).range([0, ridgeHeight]);
+            const baseline = innerH - i * offsetStep;
+
+            stats.forEach(s => {
+                if (!s.y) return;
+                g.append("path")
+                    .datum(xVals)
+                    .attr("fill", colors[s.key])
+                    .attr("opacity", 0.6)
+                    .attr("d", d3.area()
+                        .x(v => x(v))
+                        .y0(baseline)
+                        .y1((v, j) => baseline - yScale(s.y[j]))
+                    );
+            });
+
+            g.append("text")
+                .attr("x", 0)
+                .attr("y", baseline - 5)
+                .text(`${dec}s`)
+                .style("font-size", "10px")
+                .style("fill", "#333");
+        });
+
+        g.append("g")
+            .attr("transform", `translate(0, ${innerH})`)
+            .call(d3.axisBottom(x).ticks(8))
+            .append("text")
+            .attr("x", innerW / 2)
+            .attr("y", 40)
+            .attr("fill", "#000")
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .text("kWh per person");
+
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", 26)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px")
+            .style("font-weight", 600)
+            .text("Variation in energy use per capita - Norway, Switzerland, Sweden by decade");
+
+    });
+
 
 
 });
