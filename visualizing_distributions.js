@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             g.append("text")
-                .attr("x", 0)
+                .attr("x", - 35)
                 .attr("y", baseline - 5)
                 .text(`${dec}s`)
                 .style("font-size", "10px")
