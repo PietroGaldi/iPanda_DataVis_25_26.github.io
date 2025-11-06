@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .attr("x", x(0))
                 .attr("width", d => Math.abs(x(d.nonren) - x(0)))
                 .attr("height", y.bandwidth())
-                .attr("fill", "#1f77b4");
+                .attr("fill", "#14476cff");
         });
 
         const title = svg.append("text")
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         title.append("tspan")
           .text("Non-Renewable ")
-          .attr("fill", "#1f77b4")
+          .attr("fill", "#14476cff")
           .style("font-weight", "600");
 
         title.append("tspan")
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-        const colors = { "Norway": "#e67e22", "Switzerland": "#c0392b", "Sweden": "steelblue" };
+        const colors = { "Norway": "#c78a08ff", "Switzerland": "#329cdaff", "Sweden": "#009E73" };
         const x = d3.scaleLinear().domain(xDomain).range([0, innerW]);
 
         const offsetStep = 42;
@@ -263,13 +263,38 @@ document.addEventListener("DOMContentLoaded", () => {
             .style("font-size", "12px")
             .text("kWh per person");
 
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 26)
-            .attr("text-anchor", "middle")
-            .style("font-size", "18px")
-            .style("font-weight", 600)
-            .text("Variation in energy use per capita - Norway, Switzerland, Sweden by decade");
+        const title = svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", 26)
+          .attr("text-anchor", "middle")
+          .style("font-size", "18px");
+
+        title.append("tspan")
+          .text("Variation in energy use per capita by decade in ")
+          .attr("fill", "#333");
+
+        title.append("tspan")
+          .text("Switzerland")
+          .attr("fill", "#329cdaff")
+          .style("font-weight", "600");
+
+        title.append("tspan")
+          .text(", ")
+          .attr("fill", "#333");
+
+        title.append("tspan")
+          .text("Sewden ")
+          .attr("fill", "#009E73")
+          .style("font-weight", "600");
+
+        title.append("tspan")
+          .text("and ")
+          .attr("fill", "#333");
+
+        title.append("tspan")
+          .text("Norway")
+          .attr("fill", "#c78a08ff")
+          .style("font-weight", "600");
 
     });
 
