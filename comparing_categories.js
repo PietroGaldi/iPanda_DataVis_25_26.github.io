@@ -41,9 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     });
 
-    const width = 750;
+    const width = 800;
     const height = 550;
-    const margin = { top: 45, right: 40, bottom: 80, left: 90 };
+    const margin = { top: 50, right: 40, bottom: 80, left: 100 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -144,9 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     });
 
-    const width = 750;
+    const width = 800;
     const height = 480;
-    const margin = { top: 45, right: 30, bottom: 120, left: 90 };
+    const margin = { top: 50, right: 30, bottom: 110, left: 90 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -503,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
       labelMap[col] = extractLabel(col);
     });
 
-    const width = 950;
+    const width = 800;
     const height = 520;
     const margin = { top: 50, right: 180, bottom: 80, left: 90 };
     const innerWidth = width - margin.left - margin.right;
