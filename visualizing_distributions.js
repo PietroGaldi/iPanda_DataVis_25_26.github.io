@@ -283,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Sewden ")
+          .text("Sweden ")
           .attr("fill", "#009E73")
           .style("font-weight", "600");
 
