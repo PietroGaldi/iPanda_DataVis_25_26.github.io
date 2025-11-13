@@ -48,8 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 return {
                     country,
                     label: binLabel([a, b]),
-                    renew: tot > 0 ? -(rsum / tot) : 0,
-                    nonren: tot > 0 ? (nsum / tot) : 0
+                    renew: tot > 0 ? rsum / tot : 0,   // 🔹 now positive for right side
+                    nonren: tot > 0 ? -nsum / tot : 0  // 🔹 negative for left side
                 };
             });
         });
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const cols = 5, rowsGrid = 2;
         const wEach = 230, hEach = 250;
         const margin = { top: 70, right: 28, bottom: 36, left: 72 };
-        const cellW = wEach - margin.left - margin.right;
+        const cellW = wEach - margin.left - margin.right + 30;
         const cellH = hEach - margin.top - margin.bottom;
         const width = cols * wEach + 40;
         const height = rowsGrid * hEach + 50;
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const fmt = d3.format(".0%");
         const x = d3.scaleLinear().domain([-1, 1]).range([0, cellW]);
-        const y = d3.scaleBand().domain(BINS.map(binLabel)).range([0, cellH]).padding(0.18);
+        const y = d3.scaleBand().domain(BINS.map(binLabel)).range([cellH, 0]).padding(0.18);
 
         panelData.forEach((arr, i) => {
             const col = i % cols;
@@ -85,44 +85,48 @@ document.addEventListener("DOMContentLoaded", () => {
                 .style("font-weight", 700)
                 .text(arr[0].country);
 
-            g.append("g")
-                .call(d3.axisLeft(y).tickSize(0))
-                .call(s => s.select(".domain").remove())
-                .selectAll("text")
-                .style("font-size", "10px")
-                .style("font-weight", 500);
+            const xAxis = d3.scaleBand().domain(BINS.map(binLabel)).range([0, cellW]).padding(0.18);
+            const yAxis = d3.scaleLinear().domain([-1, 1]).range([cellH, 0]);
 
             g.append("g")
                 .attr("transform", `translate(0,${cellH})`)
-                .call(d3.axisBottom(x)
+                .call(d3.axisBottom(xAxis))
+                .selectAll("text")
+                .attr("transform", "rotate(-30)")
+                .attr("text-anchor", "end")
+                .style("font-size", "10px");
+
+            g.append("g")
+                .call(d3.axisLeft(yAxis)
                     .tickValues([-1, -0.5, 0, 0.5, 1])
-                    .tickFormat(t => t === 0 ? "0%" : fmt(Math.abs(t))))
+                    .tickFormat(t => t === 0 ? "0%" : fmt(Math.abs(t)))
+                )
                 .selectAll("text")
                 .style("font-size", "9px");
 
             g.append("line")
-                .attr("x1", x(0)).attr("x2", x(0))
-                .attr("y1", 0).attr("y2", cellH)
+                .attr("x1", 0).attr("x2", cellW)
+                .attr("y1", yAxis(0)).attr("y2", yAxis(0))
                 .attr("stroke", "#c7c9d3");
 
             g.selectAll("rect.renew")
                 .data(arr)
                 .enter().append("rect")
                 .attr("class", "renew")
-                .attr("y", d => y(d.label))
-                .attr("x", d => x(Math.min(0, d.renew)))
-                .attr("width", d => Math.abs(x(d.renew) - x(0)))
-                .attr("height", y.bandwidth())
+                .attr("x", d => xAxis(d.label))
+                .attr("y", d => yAxis(d.renew))
+                .attr("width", xAxis.bandwidth())
+                .attr("height", d => Math.abs(yAxis(d.renew) - yAxis(0)))
                 .attr("fill", "#2ca02c");
 
             g.selectAll("rect.nonren")
                 .data(arr)
                 .enter().append("rect")
                 .attr("class", "nonren")
-                .attr("y", d => y(d.label))
-                .attr("x", x(0))
-                .attr("width", d => Math.abs(x(d.nonren) - x(0)))
-                .attr("height", y.bandwidth())
+                .attr("x", d => xAxis(d.label))
+                .attr("y", d => yAxis(0))
+                .attr("width", xAxis.bandwidth())
+                .attr("height", d => Math.abs(yAxis(d.nonren) - yAxis(0)))
                 .attr("fill", "#14476cff");
         });
 
@@ -142,15 +146,15 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Non-Renewable ")
-          .attr("fill", "#14476cff")
-          .style("font-weight", "600");
+            .text("Non-Renewable ")
+            .attr("fill", "#14476cff")
+            .style("font-weight", "600");
 
         title.append("tspan")
             .text("electricity production (2000-2024)")
             .attr("fill", "#333");
-
     });
+
 
     d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
         const COUNTRIES = ["Norway", "Switzerland", "Sweden"];
@@ -264,41 +268,41 @@ document.addEventListener("DOMContentLoaded", () => {
             .text("kWh per person");
 
         const title = svg.append("text")
-          .attr("x", width / 2)
-          .attr("y", 26)
-          .attr("text-anchor", "middle")
-          .style("font-size", "18px");
+            .attr("x", width / 2)
+            .attr("y", 26)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px");
 
         title.append("tspan")
-          .text("Variation in energy use per capita by decade in ")
-          .attr("fill", "#333");
+            .text("Variation in energy use per capita by decade in ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Switzerland")
-          .attr("fill", "#329cdaff")
-          .style("font-weight", "600");
+            .text("Switzerland")
+            .attr("fill", "#329cdaff")
+            .style("font-weight", "600");
 
         title.append("tspan")
-          .text(", ")
-          .attr("fill", "#333");
+            .text(", ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Sweden ")
-          .attr("fill", "#009E73")
-          .style("font-weight", "600");
+            .text("Sweden ")
+            .attr("fill", "#009E73")
+            .style("font-weight", "600");
 
         title.append("tspan")
-          .text("and ")
-          .attr("fill", "#333");
+            .text("and ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Norway")
-          .attr("fill", "#c78a08ff")
-          .style("font-weight", "600");
+            .text("Norway")
+            .attr("fill", "#c78a08ff")
+            .style("font-weight", "600");
 
     });
 
-      d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
+    d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
         const COUNTRIES = [
             "Italy", "France", "Germany", "Spain", "United Kingdom",
             "Sweden", "Norway", "Netherlands", "Greece", "Switzerland"
@@ -347,7 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const outliers = arr.filter(d => d.value < min || d.value > max);
                 return { country, vals, stats: { q1, med, q3, min, max }, outliers };
             })
-            .sort((a, b) => COUNTRIES.indexOf(a.country) - COUNTRIES.indexOf(b.country));
+            .sort((a, b) => d3.ascending(a.stats.med, b.stats.med));
 
         const width = 950, height = 520;
         const margin = { top: 48, right: 28, bottom: 100, left: 80 };
@@ -360,9 +364,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-        const x = d3.scaleBand().domain(COUNTRIES).range([0, innerW]).padding(0.35);
+        const x = d3.scaleBand()
+            .domain(grouped.map(d => d.country))
+            .range([0, innerW])
+            .padding(0.35);
+
         const ymax = d3.max(grouped.flatMap(gd => gd.vals)) || 1;
         const y = d3.scaleLinear().domain([0, ymax * 1.05]).nice().range([innerH, 0]);
+
+        const color = d3.scaleSequential()
+            .domain(d3.extent(grouped, d => d.stats.med))
+            .interpolator(d3.interpolateReds);
 
         const boxW = Math.max(14, x.bandwidth());
 
@@ -379,7 +391,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("x", 0).attr("width", boxW)
             .attr("y", d => y(d.stats.q3))
             .attr("height", d => Math.max(1, y(d.stats.q1) - y(d.stats.q3)))
-            .attr("fill", "#87CEEB")
+
+            .attr("fill", d => color(d.stats.med))
             .attr("stroke", "#333");
 
         gCountry.append("line")
@@ -391,6 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("x1", boxW * 0.25).attr("x2", boxW * 0.75)
             .attr("y1", d => y(d.stats.max)).attr("y2", d => y(d.stats.max))
             .attr("stroke", "#444");
+
         gCountry.append("line")
             .attr("x1", boxW * 0.25).attr("x2", boxW * 0.75)
             .attr("y1", d => y(d.stats.min)).attr("y2", d => y(d.stats.min))
@@ -429,7 +443,32 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("text-anchor", "middle")
             .style("font-size", "18px")
             .text("CO2 Emissions per Capita - Distribution by Country from 2000");
-    });
 
+        const defs = svg.append("defs");
+        const gradient = defs.append("linearGradient")
+            .attr("id", "colorLegend")
+            .attr("x1", "0%").attr("x2", "100%");
+
+        gradient.selectAll("stop")
+            .data(d3.ticks(0, 1, 10))
+            .enter().append("stop")
+            .attr("offset", d => `${d * 100}%`)
+            .attr("stop-color", d => d3.interpolateReds(d));
+
+        svg.append("rect")
+            .attr("x", width / 2 - 100)
+            .attr("y", height - 15)
+            .attr("width", 200)
+            .attr("height", 10)
+            .style("fill", "url(#colorLegend)");
+
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height - 20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "11px")
+            .text("Median CO2 per capita");
+
+    });
 
 });
