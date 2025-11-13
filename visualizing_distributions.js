@@ -283,9 +283,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("fill", "#333");
 
         title.append("tspan")
-            .text("Sewden ")
-            .attr("fill", "#009E73")
-            .style("font-weight", "600");
+          .text("Sweden ")
+          .attr("fill", "#009E73")
+          .style("font-weight", "600");
 
         title.append("tspan")
             .text("and ")
