@@ -142,9 +142,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Non-Renewable ")
-          .attr("fill", "#14476cff")
-          .style("font-weight", "600");
+            .text("Non-Renewable ")
+            .attr("fill", "#14476cff")
+            .style("font-weight", "600");
 
         title.append("tspan")
             .text("electricity production (2000-2024)")
@@ -264,41 +264,41 @@ document.addEventListener("DOMContentLoaded", () => {
             .text("kWh per person");
 
         const title = svg.append("text")
-          .attr("x", width / 2)
-          .attr("y", 26)
-          .attr("text-anchor", "middle")
-          .style("font-size", "18px");
+            .attr("x", width / 2)
+            .attr("y", 26)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px");
 
         title.append("tspan")
-          .text("Variation in energy use per capita by decade in ")
-          .attr("fill", "#333");
+            .text("Variation in energy use per capita by decade in ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Switzerland")
-          .attr("fill", "#329cdaff")
-          .style("font-weight", "600");
+            .text("Switzerland")
+            .attr("fill", "#329cdaff")
+            .style("font-weight", "600");
 
         title.append("tspan")
-          .text(", ")
-          .attr("fill", "#333");
+            .text(", ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Sewden ")
-          .attr("fill", "#009E73")
-          .style("font-weight", "600");
+            .text("Sewden ")
+            .attr("fill", "#009E73")
+            .style("font-weight", "600");
 
         title.append("tspan")
-          .text("and ")
-          .attr("fill", "#333");
+            .text("and ")
+            .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Norway")
-          .attr("fill", "#c78a08ff")
-          .style("font-weight", "600");
+            .text("Norway")
+            .attr("fill", "#c78a08ff")
+            .style("font-weight", "600");
 
     });
 
-      d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
+    d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
         const COUNTRIES = [
             "Italy", "France", "Germany", "Spain", "United Kingdom",
             "Sweden", "Norway", "Netherlands", "Greece", "Switzerland"
@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const outliers = arr.filter(d => d.value < min || d.value > max);
                 return { country, vals, stats: { q1, med, q3, min, max }, outliers };
             })
-            .sort((a, b) => COUNTRIES.indexOf(a.country) - COUNTRIES.indexOf(b.country));
+            .sort((a, b) => d3.ascending(a.stats.med, b.stats.med));
 
         const width = 950, height = 520;
         const margin = { top: 48, right: 28, bottom: 100, left: 80 };
@@ -360,9 +360,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-        const x = d3.scaleBand().domain(COUNTRIES).range([0, innerW]).padding(0.35);
+        const x = d3.scaleBand()
+            .domain(grouped.map(d => d.country))
+            .range([0, innerW])
+            .padding(0.35);
+
         const ymax = d3.max(grouped.flatMap(gd => gd.vals)) || 1;
         const y = d3.scaleLinear().domain([0, ymax * 1.05]).nice().range([innerH, 0]);
+
+        const color = d3.scaleSequential()
+            .domain(d3.extent(grouped, d => d.stats.med))
+            .interpolator(d3.interpolateReds);
 
         const boxW = Math.max(14, x.bandwidth());
 
@@ -379,7 +387,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("x", 0).attr("width", boxW)
             .attr("y", d => y(d.stats.q3))
             .attr("height", d => Math.max(1, y(d.stats.q1) - y(d.stats.q3)))
-            .attr("fill", "#87CEEB")
+
+            .attr("fill", d => color(d.stats.med))
             .attr("stroke", "#333");
 
         gCountry.append("line")
@@ -391,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("x1", boxW * 0.25).attr("x2", boxW * 0.75)
             .attr("y1", d => y(d.stats.max)).attr("y2", d => y(d.stats.max))
             .attr("stroke", "#444");
+
         gCountry.append("line")
             .attr("x1", boxW * 0.25).attr("x2", boxW * 0.75)
             .attr("y1", d => y(d.stats.min)).attr("y2", d => y(d.stats.min))
@@ -429,7 +439,32 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("text-anchor", "middle")
             .style("font-size", "18px")
             .text("CO2 Emissions per Capita - Distribution by Country from 2000");
-    });
 
+        const defs = svg.append("defs");
+        const gradient = defs.append("linearGradient")
+            .attr("id", "colorLegend")
+            .attr("x1", "0%").attr("x2", "100%");
+
+        gradient.selectAll("stop")
+            .data(d3.ticks(0, 1, 10))
+            .enter().append("stop")
+            .attr("offset", d => `${d * 100}%`)
+            .attr("stop-color", d => d3.interpolateReds(d));
+
+        svg.append("rect")
+            .attr("x", width / 2 - 100)
+            .attr("y", height - 15)
+            .attr("width", 200)
+            .attr("height", 10)
+            .style("fill", "url(#colorLegend)");
+
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height - 20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "11px")
+            .text("Median CO2 per capita");
+
+    });
 
 });
