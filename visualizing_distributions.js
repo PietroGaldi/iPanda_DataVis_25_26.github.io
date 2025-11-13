@@ -48,8 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 return {
                     country,
                     label: binLabel([a, b]),
-                    renew: tot > 0 ? -(rsum / tot) : 0,
-                    nonren: tot > 0 ? (nsum / tot) : 0
+                    renew: tot > 0 ? rsum / tot : 0,   // 🔹 now positive for right side
+                    nonren: tot > 0 ? -nsum / tot : 0  // 🔹 negative for left side
                 };
             });
         });
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const cols = 5, rowsGrid = 2;
         const wEach = 230, hEach = 250;
         const margin = { top: 70, right: 28, bottom: 36, left: 72 };
-        const cellW = wEach - margin.left - margin.right;
+        const cellW = wEach - margin.left - margin.right + 30;
         const cellH = hEach - margin.top - margin.bottom;
         const width = cols * wEach + 40;
         const height = rowsGrid * hEach + 50;
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const fmt = d3.format(".0%");
         const x = d3.scaleLinear().domain([-1, 1]).range([0, cellW]);
-        const y = d3.scaleBand().domain(BINS.map(binLabel)).range([0, cellH]).padding(0.18);
+        const y = d3.scaleBand().domain(BINS.map(binLabel)).range([cellH, 0]).padding(0.18);
 
         panelData.forEach((arr, i) => {
             const col = i % cols;
@@ -85,44 +85,48 @@ document.addEventListener("DOMContentLoaded", () => {
                 .style("font-weight", 700)
                 .text(arr[0].country);
 
-            g.append("g")
-                .call(d3.axisLeft(y).tickSize(0))
-                .call(s => s.select(".domain").remove())
-                .selectAll("text")
-                .style("font-size", "10px")
-                .style("font-weight", 500);
+            const xAxis = d3.scaleBand().domain(BINS.map(binLabel)).range([0, cellW]).padding(0.18);
+            const yAxis = d3.scaleLinear().domain([-1, 1]).range([cellH, 0]);
 
             g.append("g")
                 .attr("transform", `translate(0,${cellH})`)
-                .call(d3.axisBottom(x)
+                .call(d3.axisBottom(xAxis))
+                .selectAll("text")
+                .attr("transform", "rotate(-30)")
+                .attr("text-anchor", "end")
+                .style("font-size", "10px");
+
+            g.append("g")
+                .call(d3.axisLeft(yAxis)
                     .tickValues([-1, -0.5, 0, 0.5, 1])
-                    .tickFormat(t => t === 0 ? "0%" : fmt(Math.abs(t))))
+                    .tickFormat(t => t === 0 ? "0%" : fmt(Math.abs(t)))
+                )
                 .selectAll("text")
                 .style("font-size", "9px");
 
             g.append("line")
-                .attr("x1", x(0)).attr("x2", x(0))
-                .attr("y1", 0).attr("y2", cellH)
+                .attr("x1", 0).attr("x2", cellW)
+                .attr("y1", yAxis(0)).attr("y2", yAxis(0))
                 .attr("stroke", "#c7c9d3");
 
             g.selectAll("rect.renew")
                 .data(arr)
                 .enter().append("rect")
                 .attr("class", "renew")
-                .attr("y", d => y(d.label))
-                .attr("x", d => x(Math.min(0, d.renew)))
-                .attr("width", d => Math.abs(x(d.renew) - x(0)))
-                .attr("height", y.bandwidth())
+                .attr("x", d => xAxis(d.label))
+                .attr("y", d => yAxis(d.renew))
+                .attr("width", xAxis.bandwidth())
+                .attr("height", d => Math.abs(yAxis(d.renew) - yAxis(0)))
                 .attr("fill", "#2ca02c");
 
             g.selectAll("rect.nonren")
                 .data(arr)
                 .enter().append("rect")
                 .attr("class", "nonren")
-                .attr("y", d => y(d.label))
-                .attr("x", x(0))
-                .attr("width", d => Math.abs(x(d.nonren) - x(0)))
-                .attr("height", y.bandwidth())
+                .attr("x", d => xAxis(d.label))
+                .attr("y", d => yAxis(0))
+                .attr("width", xAxis.bandwidth())
+                .attr("height", d => Math.abs(yAxis(d.nonren) - yAxis(0)))
                 .attr("fill", "#14476cff");
         });
 
@@ -149,8 +153,8 @@ document.addEventListener("DOMContentLoaded", () => {
         title.append("tspan")
             .text("electricity production (2000-2024)")
             .attr("fill", "#333");
-
     });
+
 
     d3.csv("data/per-capita-energy-use-europe.csv").then(rows => {
         const COUNTRIES = ["Norway", "Switzerland", "Sweden"];
@@ -283,9 +287,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("fill", "#333");
 
         title.append("tspan")
-          .text("Sweden ")
-          .attr("fill", "#009E73")
-          .style("font-weight", "600");
+            .text("Sweden ")
+            .attr("fill", "#009E73")
+            .style("font-weight", "600");
 
         title.append("tspan")
             .text("and ")
