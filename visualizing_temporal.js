@@ -151,6 +151,13 @@ d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
         .on("mouseout", function () {
             d3.select(this).select("circle").attr("stroke-width", 1);
         });
+    legend.append("text")
+        .attr("x", -40)
+        .attr("y", -25)
+        .text("Click on a country to highlight")
+        .style("font-size", "12px")
+        .style("fill", "#555")
+        .style("font-style", "italic");
 
     legendItems.append("circle")
         .attr("cx", 7)
