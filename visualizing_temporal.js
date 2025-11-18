@@ -127,7 +127,7 @@ d3.csv("data/co-emissions-per-capita-europe.csv").then(rows => {
 
 
     const legend = svg.append("g")
-        .attr("transform", `translate(${width + innerW + 20}, ${margin.top})`);
+        .attr("transform", `translate(${width - margin.right + 20}, ${margin.top})`);
 
     const legendItems = legend.selectAll(".legend-item")
         .data(COUNTRIES)
