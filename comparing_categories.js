@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Simple barplot on average primary energy consumption by source (considering 2022-2024)
   d3.csv("data/global-energy-substitution.csv").then(rows => {
-    console.log("CSV caricato, righe:", rows.length);
 
     // Filter only the rows for 2022, 2023, 2024
     const rowsSelected = rows.filter(d =>
