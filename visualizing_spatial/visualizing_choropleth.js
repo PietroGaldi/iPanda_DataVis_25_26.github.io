@@ -1,6 +1,6 @@
 Promise.all([
-  d3.csv("data/per-capita-energy-use-europe.csv"),
-  d3.json("https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/TopoJSON/europe.topojson")
+    d3.csv("data/per-capita-energy-use-europe.csv"),
+    d3.json("https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/TopoJSON/europe.topojson")
 ]).then(([rows, topo]) => {
     const geojson = topojson.feature(topo, topo.objects.europe);
 
@@ -52,11 +52,9 @@ Promise.all([
 
     const path = d3.geoPath().projection(projection);
 
-    const extent = d3.extent(data, d => d.value);
-
-    const color = d3.scaleSequential()
-        .domain(extent)
-        .interpolator(d3.interpolateReds);
+    // --- Continuous color scale ---
+    const color = d3.scaleSequential(d3.interpolateReds)
+        .domain(d3.extent(data, d => d.value));
 
     const tooltip = d3.select("#choropleth_map")
         .append("div")
@@ -105,46 +103,50 @@ Promise.all([
         .style("font-size", "20px")
         .text(`Primary energy consumption per capita in Europe in ${YEAR}`);
 
+    // --- LEGEND ---
     const legendWidth = 500;
     const legendHeight = 22;
-
     const legendGroup = svg.append("g")
         .attr("transform", `translate(${width - 660}, ${height - 60})`);
 
-    const gradient = svg.append("defs")
-      .append("linearGradient")
-      .attr("id", "legend-gradient");
+    // Divide into n bins matching the number of colors (e.g., 8)
+    const nColors = 8;
+    const extent = d3.extent(data, d => d.value);
+    const binStep = (extent[1] - extent[0]) / nColors;
+    const bins = d3.range(extent[0], extent[1] + binStep, binStep);
+    const binCenters = bins.slice(0, -1).map((d, i) => (bins[i] + bins[i+1]) / 2);
 
-    gradient.selectAll("stop")
-      .data(d3.range(0, 1.01, 0.01))
-      .enter()
-      .append("stop")
-      .attr("offset", d => d)
-      .attr("stop-color", d => color(extent[0] + d * (extent[1] - extent[0])));
+    const colorBins = d3.range(nColors).map(i => color(extent[0] + i * binStep));
 
-    legendGroup.append("rect")
-        .attr("width", legendWidth)
+    legendGroup.selectAll("rect")
+        .data(colorBins)
+        .enter()
+        .append("rect")
+        .attr("x", (d, i) => i * (legendWidth / nColors))
+        .attr("y", 0)
+        .attr("width", legendWidth / nColors)
         .attr("height", legendHeight)
-        .style("fill", "url(#legend-gradient)")
-        .style("stroke", "#555")
-        .style("stroke-width", 1);
+        .attr("fill", d => d)
+        .attr("stroke", "#555");
 
-    const legendScale = d3.scaleLinear()
+    const axisScale = d3.scaleLinear()
         .domain(extent)
         .range([0, legendWidth]);
 
-    const legendAxis = d3.axisBottom(legendScale)
-        .ticks(6)
-        .tickFormat(d3.format(".2s"));
+    const legendAxis = d3.axisBottom(axisScale)
+        .tickValues(binCenters)
+        .tickFormat(d3.format(".2s"))
+        .tickSize(0)
+        .tickPadding(8);
 
     legendGroup.append("g")
         .attr("transform", `translate(0, ${legendHeight})`)
-        .call(legendAxis);
+        .call(legendAxis)
+        .select(".domain").remove();
 
     legendGroup.append("text")
         .attr("y", -8)
         .attr("x", 0)
         .style("font-size", "14px")
         .text("kWh per person (2020)");
-
 });
