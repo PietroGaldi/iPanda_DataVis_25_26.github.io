@@ -148,6 +148,21 @@ p {
   display: flex;
 }
 
+.choropleth {
+  margin: 2em auto;
+  padding: 2em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+#choropleth_map svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 .list_img ul {
   flex: 1;
   margin: 0;
