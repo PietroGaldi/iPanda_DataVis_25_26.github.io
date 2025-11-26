@@ -37,8 +37,8 @@ Promise.all([
 
     const valueByCountry = new Map(data.map(d => [d.country, d.value]));
 
-    const width = 950;
-    const height = 1000;
+    const width = 850;
+    const height = 800;
 
     const svg = d3.select("#choropleth_map")
         .append("svg")
@@ -47,7 +47,7 @@ Promise.all([
 
     const projection = d3.geoMercator()
         .center([20, 55])
-        .scale(600)
+        .scale(500)
         .translate([width / 2, height / 2]);
 
     const path = d3.geoPath().projection(projection);
@@ -103,14 +103,13 @@ Promise.all([
         .attr("y", 35)
         .attr("text-anchor", "middle")
         .style("font-size", "20px")
-        .style("font-weight", "600")
         .text(`Primary energy consumption per capita (kWh/person) in Europe in ${YEAR}`);
 
-    const legendWidth = 300;
-    const legendHeight = 12;
+    const legendWidth = 500;
+    const legendHeight = 22;
 
     const legendGroup = svg.append("g")
-        .attr("transform", `translate(${width - 360}, ${height - 60})`);
+        .attr("transform", `translate(${width - 660}, ${height - 60})`);
 
     const gradient = svg.append("defs")
       .append("linearGradient")
@@ -145,7 +144,7 @@ Promise.all([
     legendGroup.append("text")
         .attr("y", -8)
         .attr("x", 0)
-        .style("font-size", "12px")
+        .style("font-size", "14px")
         .text("kWh per person (2023)");
 
     console.log("CSV sample:", data[0]);

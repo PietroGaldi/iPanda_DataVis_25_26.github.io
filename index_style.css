@@ -157,12 +157,6 @@ p {
   justify-content: center;
 }
 
-#choropleth_map svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
-
 .list_img ul {
   flex: 1;
   margin: 0;
