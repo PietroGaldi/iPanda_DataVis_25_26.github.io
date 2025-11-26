@@ -147,8 +147,4 @@ Promise.all([
         .style("font-size", "14px")
         .text("kWh per person (2020)");
 
-    console.log("CSV sample:", data[0]);
-    console.log("GeoJSON sample:", geojson.features[0].properties);
-    console.log("Extent: ", extent);
-
 });
