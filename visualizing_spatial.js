@@ -103,7 +103,7 @@ Promise.all([
         .attr("y", 35)
         .attr("text-anchor", "middle")
         .style("font-size", "20px")
-        .text(`Primary energy consumption per capita (kWh/person) in Europe in ${YEAR}`);
+        .text(`Primary energy consumption per capita in Europe in ${YEAR}`);
 
     const legendWidth = 500;
     const legendHeight = 22;
