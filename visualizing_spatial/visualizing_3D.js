@@ -81,12 +81,12 @@ Promise.all([
                 (altName ? valueByCountry.get(altName) : undefined);
 
             const valStr = Number.isFinite(v)
-                ? `${v.toFixed(2)} tCO₂ per person`
+                ? `${v.toFixed(2)} CO2 tons per person`
                 : "No data";
 
             return `
         <b>${geoName}</b><br>
-        <b>${COL}</b>, ${YEAR}: ${valStr}
+        ${valStr}
       `;
         })
         .polygonsTransitionDuration(200).globeMaterial(new THREE.MeshStandardMaterial({
@@ -95,9 +95,48 @@ Promise.all([
     metalness: 0.1
   }))
   .backgroundColor("#f5f5f5");
-
     worldGlobe(globeElem);
     worldGlobe.pointOfView({ lat: 20, lng: 0, altitude: 2.1 });
+
+    const svgLegend = d3.select("#map_legend");
+
+    const legendHeight = 200;
+    const legendWidth = 20;
+
+    const defs = svgLegend.append("defs");
+
+    const linearGradient = defs.append("linearGradient")
+        .attr("id", "legend-gradient")
+        .attr("x1", "0%")
+        .attr("y1", "100%")
+        .attr("x2", "0%")
+        .attr("y2", "0%");
+
+    const nSteps = 10;
+    for (let i = 0; i <= nSteps; i++) {
+        linearGradient.append("stop")
+            .attr("offset", `${i / nSteps * 100}%`)
+            .attr("stop-color", color(extent[0] + (extent[1] - extent[0]) * i / nSteps));
+    }
+
+    svgLegend.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#legend-gradient)")
+        .style("stroke", "#000");
+
+    const legendScale = d3.scaleLinear()
+        .domain(extent)
+        .range([legendHeight, 0]);
+
+    const legendAxis = d3.axisRight(legendScale)
+        .ticks(5);
+
+    svgLegend.append("g")
+        .attr("transform", `translate(${legendWidth}, 0)`)
+        .call(legendAxis);
 })
     .catch(err => {
         console.error("Error", err);
