@@ -145,7 +145,7 @@ Promise.all([
         .attr("y", -8)
         .attr("x", 0)
         .style("font-size", "14px")
-        .text("kWh per person (2023)");
+        .text("kWh per person (2020)");
 
     console.log("CSV sample:", data[0]);
     console.log("GeoJSON sample:", geojson.features[0].properties);
