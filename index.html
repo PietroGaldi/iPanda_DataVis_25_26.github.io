@@ -4,6 +4,12 @@
 <head>
   <link rel="stylesheet" href="index_style.css">
   <Title>Energy and Environment</Title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://d3js.org/topojson.v3.min.js"></script>
+
 </head>
 
 <body>
@@ -223,7 +229,7 @@
       Southern Europe shows much lower consumption overall, largely due to milder
       temperatures and reduced heating needs.</p>
 
-    <div class="symbolic_map" id="symbolic_map"></div>
+    <div class="choropleth" id="choropleth_map3d"></div>
     <p>description 2</p>
 
     <div class="graphic3" id=""></div>
@@ -231,13 +237,14 @@
 
 
   </main>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+
   <script src="comparing_categories.js"></script>
   <script src="visualizing_distributions.js"></script>
   <script src="visualizing_temporal.js"></script>
   <script src="visualizing_spatial/visualizing_choropleth.js"></script>
   <script src="visualizing_spatial/visualizing_symbolic.js"></script>
-  <script src="https://d3js.org/topojson.v3.min.js"></script>
+  <script src="visualizing_spatial/visualizing_3D.js"></script>
 
   <footer>
     <p>University of Genova: Data Visualization Course 2025/2026</p>
