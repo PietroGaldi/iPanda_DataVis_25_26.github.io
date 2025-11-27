@@ -49,12 +49,25 @@ Promise.all([
     const globeElem = container.node();
 
     const NAME_FIX = {
-        "United States": "United States of America",
-        "Democratic Republic of Congo": "Democratic Republic of the Congo",
-        "Congo": "Republic of the Congo",
-        "Czechia": "Czech Republic",
-        "Myanmar": "Burma"
+      "United States of America": "United States",
+      "Democratic Republic of the Congo": "Democratic Republic of Congo",
+      "Republic of the Congo": "Congo",
+      "Czech Republic": "Czechia",
+      "Myanmar": "Myanmar",
+      "United Kingdom": "United Kingdom",
+      "England": "United Kingdom",
+      "Serbia": "Serbia",
+      "Republic of Serbia": "Serbia",
+      "Russia": "Russian Federation",
+      "Russian Federation": "Russia",
+      "South Korea": "Korea, Rep.",
+      "North Korea": "Korea, Dem. People's Rep.",
+      "Ivory Coast": "Côte d'Ivoire",
+      "Syria": "Syrian Arab Republic",
+      "Vietnam": "Viet Nam",
+      "Tanzania": "United Republic of Tanzania"
     };
+
 
     const worldGlobe = Globe()
         .width(width)
