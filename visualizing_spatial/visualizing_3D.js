@@ -164,7 +164,7 @@ Promise.all([
       .attr("x", 10)
       .attr("y", legendHeight + 30)
       .style("font-size", "11px")
-      .text("CO2");
+      .text("CO2 tons");
 })
 .catch(err => {
     console.error("Error", err);
