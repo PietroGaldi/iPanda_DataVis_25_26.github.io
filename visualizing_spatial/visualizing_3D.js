@@ -49,7 +49,8 @@ Promise.all([
     const globeElem = container.node();
 
     const NAME_FIX = {
-      "United States of America": "United States",
+      "USA": "United States",
+      "United States": "USA",
       "Democratic Republic of the Congo": "Democratic Republic of Congo",
       "Republic of the Congo": "Congo",
       "Czech Republic": "Czechia",
@@ -62,10 +63,12 @@ Promise.all([
       "Russian Federation": "Russia",
       "South Korea": "Korea, Rep.",
       "North Korea": "Korea, Dem. People's Rep.",
-      "Ivory Coast": "Côte d'Ivoire",
+      "Ivory Coast": "Cote d'Ivoire",
+      "Cote d'Ivoire": "Ivory Coast",
       "Syria": "Syrian Arab Republic",
       "Vietnam": "Viet Nam",
-      "Tanzania": "United Republic of Tanzania"
+      "Tanzania": "United Republic of Tanzania",
+      "United Republic of Tanzania": "Tanzania"
     };
 
 
