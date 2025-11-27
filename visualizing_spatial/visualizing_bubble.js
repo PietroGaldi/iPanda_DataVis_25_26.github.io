@@ -48,15 +48,15 @@ const tooltip = d3.select("#bubble_map")
   .style("opacity", 0);
 
 const COLS = {
-  other:  "Other renewables excluding bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  bio:    "Electricity from bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  solar:  "Electricity from solar - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  wind:   "Electricity from wind - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  hydro:  "Electricity from hydro - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  nuclear:"Electricity from nuclear - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  oil:    "Electricity from oil - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  gas:    "Electricity from gas - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
-  coal:   "Electricity from coal - TWh (adapted for visualization of chart electricity-prod-source-stacked)"
+  other: "Other renewables excluding bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  bio: "Electricity from bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  solar: "Electricity from solar - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  wind: "Electricity from wind - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  hydro: "Electricity from hydro - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  nuclear: "Electricity from nuclear - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  oil: "Electricity from oil - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  gas: "Electricity from gas - TWh (adapted for visualization of chart electricity-prod-source-stacked)",
+  coal: "Electricity from coal - TWh (adapted for visualization of chart electricity-prod-source-stacked)"
 };
 
 const toNum = v => {
@@ -74,14 +74,14 @@ Promise.all([
   const data = rows
     .filter(d => +d.Year === YEAR)
     .map(d => {
-      const coal    = toNum(d[COLS.coal]);
-      const oil     = toNum(d[COLS.oil]);
-      const gas     = toNum(d[COLS.gas]);
-      const other   = toNum(d[COLS.other]);
-      const bio     = toNum(d[COLS.bio]);
-      const solar   = toNum(d[COLS.solar]);
-      const wind    = toNum(d[COLS.wind]);
-      const hydro   = toNum(d[COLS.hydro]);
+      const coal = toNum(d[COLS.coal]);
+      const oil = toNum(d[COLS.oil]);
+      const gas = toNum(d[COLS.gas]);
+      const other = toNum(d[COLS.other]);
+      const bio = toNum(d[COLS.bio]);
+      const solar = toNum(d[COLS.solar]);
+      const wind = toNum(d[COLS.wind]);
+      const hydro = toNum(d[COLS.hydro]);
       const nuclear = toNum(d[COLS.nuclear]);
 
       const fossil = [coal, oil, gas]
@@ -104,10 +104,10 @@ Promise.all([
   const allClean = data.map(d => Number.isFinite(d.clean) ? d.clean : 0);
   const maxVal = d3.max(allClean);
 
-  const maxRadius = 50;
+  const maxRadius = 100;
   const radiusScale = d3.scaleSqrt()
     .domain([0, maxVal])
-    .range([6, maxRadius]);
+    .range([1, maxRadius]);
 
   const projection = d3.geoMercator()
     .center([20, 55])
@@ -118,7 +118,7 @@ Promise.all([
 
   function showCountryTooltip(event, countryName) {
     const vals = valueByCountry.get(countryName);
-    const clean  = vals ? vals.clean  : NaN;
+    const clean = vals ? vals.clean : NaN;
 
     svg.selectAll("path.country")
       .filter(d => d.properties.NAME === countryName)
@@ -208,6 +208,7 @@ Promise.all([
       hideCountryTooltip(name);
     });
 
+
   // title
   svg.append("text")
     .attr("x", width / 2)
@@ -216,4 +217,39 @@ Promise.all([
     .style("font-size", "18px")
     .style("fill", "#1f2933")
     .text(`Electricity from clean sources in Europe, ${YEAR}`);
+
+   // legend
+  const legend = svg.append("g")
+    .attr("transform", `translate(${70}, ${height / 2})`);
+
+  legend.append("text")
+    .attr("x", 0)
+    .attr("y", -55)
+    .style("font-size", "13px")
+    .style("fill", "#334155")
+    .text("Bubble size (TWh)");
+
+  const legendValuesFixed = [50, 100, 150];
+
+  legendValuesFixed.forEach((v, i) => {
+    const r = radiusScale(v);
+    const y = -10 + i * 45;
+
+    legend.append("circle")
+      .attr("cx", 20)
+      .attr("cy", y)
+      .attr("r", r)
+      .attr("fill", "none")
+      .attr("stroke", "#475569")
+      .attr("stroke-width", 0.8);
+
+    legend.append("text")
+      .attr("x", 45)
+      .attr("y", y + 4)
+      .style("font-size", "12px")
+      .style("fill", "#334155")
+      .text(`${v} TWh`);
+  });
+
+
 });
