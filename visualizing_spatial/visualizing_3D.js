@@ -49,26 +49,26 @@ Promise.all([
     const globeElem = container.node();
 
     const NAME_FIX = {
-      "USA": "United States",
-      "United States": "USA",
-      "Democratic Republic of the Congo": "Democratic Republic of Congo",
-      "Republic of the Congo": "Congo",
-      "Czech Republic": "Czechia",
-      "Myanmar": "Myanmar",
-      "United Kingdom": "United Kingdom",
-      "England": "United Kingdom",
-      "Serbia": "Serbia",
-      "Republic of Serbia": "Serbia",
-      "Russia": "Russian Federation",
-      "Russian Federation": "Russia",
-      "South Korea": "Korea, Rep.",
-      "North Korea": "Korea, Dem. People's Rep.",
-      "Ivory Coast": "Cote d'Ivoire",
-      "Cote d'Ivoire": "Ivory Coast",
-      "Syria": "Syrian Arab Republic",
-      "Vietnam": "Viet Nam",
-      "Tanzania": "United Republic of Tanzania",
-      "United Republic of Tanzania": "Tanzania"
+        "USA": "United States",
+        "United States": "USA",
+        "Democratic Republic of the Congo": "Democratic Republic of Congo",
+        "Republic of the Congo": "Congo",
+        "Czech Republic": "Czechia",
+        "Myanmar": "Myanmar",
+        "United Kingdom": "United Kingdom",
+        "England": "United Kingdom",
+        "Serbia": "Serbia",
+        "Republic of Serbia": "Serbia",
+        "Russia": "Russian Federation",
+        "Russian Federation": "Russia",
+        "South Korea": "Korea, Rep.",
+        "North Korea": "Korea, Dem. People's Rep.",
+        "Ivory Coast": "Cote d'Ivoire",
+        "Cote d'Ivoire": "Ivory Coast",
+        "Syria": "Syrian Arab Republic",
+        "Vietnam": "Viet Nam",
+        "Tanzania": "United Republic of Tanzania",
+        "United Republic of Tanzania": "Tanzania"
     };
 
 
@@ -106,18 +106,22 @@ Promise.all([
       `;
         })
         .polygonsTransitionDuration(200).globeMaterial(new THREE.MeshStandardMaterial({
-    color: "#7fbfff",
-    roughness: 20,
-    metalness: 0.1
-  }))
-  .backgroundColor("#f5f5f5");
-    worldGlobe(globeElem);
+            color: "#7fbfff",
+            roughness: 20,
+            metalness: 0.1
+        }))
+        .backgroundColor("#f5f5f5");
+
+   worldGlobe(globeElem);
     worldGlobe.pointOfView({ lat: 20, lng: 0, altitude: 2.1 });
 
-    const svgLegend = d3.select("#map_legend");
+    const legendHeight = 180;
+    const legendWidth = 18;
 
-    const legendHeight = 200;
-    const legendWidth = 20;
+    const svgLegend = d3.select("#map_legend")
+      .append("svg")
+      .attr("width", 80)
+      .attr("height", legendHeight + 40).attr("transform", `translate(-70, 10)`);
 
     const defs = svgLegend.append("defs");
 
@@ -130,30 +134,38 @@ Promise.all([
 
     const nSteps = 10;
     for (let i = 0; i <= nSteps; i++) {
-        linearGradient.append("stop")
-            .attr("offset", `${i / nSteps * 100}%`)
-            .attr("stop-color", color(extent[0] + (extent[1] - extent[0]) * i / nSteps));
+      linearGradient.append("stop")
+        .attr("offset", `${(i / nSteps) * 100}%`)
+        .attr("stop-color", color(extent[0] + (extent[1] - extent[0]) * i / nSteps));
     }
 
     svgLegend.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
+        .attr("x", 10)
+        .attr("y", 10)
         .attr("width", legendWidth)
         .attr("height", legendHeight)
         .style("fill", "url(#legend-gradient)")
-        .style("stroke", "#000");
+        .style("stroke", "#444")
+        .style("stroke-width", 0.5);
 
     const legendScale = d3.scaleLinear()
         .domain(extent)
-        .range([legendHeight, 0]);
+        .range([legendHeight, 0]); 
 
     const legendAxis = d3.axisRight(legendScale)
-        .ticks(5);
+        .ticks(5)
+        .tickFormat(d => d.toFixed(1));
 
     svgLegend.append("g")
-        .attr("transform", `translate(${legendWidth}, 0)`)
+        .attr("transform", `translate(${10 + legendWidth}, 10)`)
         .call(legendAxis);
+
+    svgLegend.append("text")
+      .attr("x", 10)
+      .attr("y", legendHeight + 30)
+      .style("font-size", "11px")
+      .text("CO2");
 })
-    .catch(err => {
-        console.error("Error", err);
-    });
+.catch(err => {
+    console.error("Error", err);
+});

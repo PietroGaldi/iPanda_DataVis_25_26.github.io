@@ -150,11 +150,14 @@ p {
 
 .choropleth {
   padding: 1em;
-  margin: 3em 15em;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  margin-left: 6rem;
+  border: none;
   display: flex;
   justify-content: center;
+}
+
+#choropleth_map3d {
+  position: relative;
 }
 
 .cartogram {
@@ -174,6 +177,7 @@ p {
 
 .map_title {
   font-size: 18px;
+  margin-bottom: 0;
   display: flex;
   justify-content: center;
 }
