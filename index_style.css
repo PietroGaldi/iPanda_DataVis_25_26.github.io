@@ -157,39 +157,23 @@ p {
   justify-content: center;
 }
 
-/*.map_wrapper {
-  position: relative;
-  width: 850px;
-  height: 800px;
-}
-  
-#map_title {
-  position: absolute;
-  top: 10px;
-  left: 100%;
-  transform: translateX(-50%);
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  pointer-events: none;
-  z-index: 10;
-}
-
-#map_legend {
-  position: absolute;
-  top: 60px; 
-  right: 10px; 
-  width: 60px;
-  height: 240px;
-  pointer-events: none;
-  z-index: 10;
-}*/
-
 .cartogram {
   padding: 1em;
   margin: 3em 15em;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.bubble {
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.map_title {
+  font-size: 18px;
   display: flex;
   justify-content: center;
 }
