@@ -12,9 +12,6 @@ Promise.all([
 
     container.selectAll("*").remove();
 
-    console.log("CSV rows:", rows.length);
-    console.log("World features:", world.features.length);
-
     const toNum = v => {
         if (v == null || v === "") return NaN;
         return +String(v).replace(/[^\d.+\-eE]/g, "");
@@ -36,10 +33,8 @@ Promise.all([
         });
 
     const values = Array.from(valueByCountry.values());
-    console.log("N° paesi con dati:", values.length);
 
     const extent = d3.extent(values);
-    console.log("Extent:", extent);
 
     const color = d3.scaleSequential()
         .domain(extent)

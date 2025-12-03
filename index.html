@@ -3,6 +3,7 @@
 
 <head>
   <link rel="stylesheet" href="index_style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <Title>Energy and Environment</Title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/examples/js/controls/OrbitControls.js"></script>
@@ -275,25 +276,18 @@
     </div>
 
     <div class="sankey">
-      <input type="range" id="yearSlider" />
-      <span id="yearLabel"></span>
+      <div id="chart-title"></div>
+      <div class="sankey-legend"><i class="fa-solid fa-hand-pointer"></i>
+        Click on a node to highlight its connections. Click again to reset the view.</div>
+
       <svg id="sankey_diagram"></svg>
+      <div class="controls">
+        <label for="yearSlider">Select Year: <span id="yearLabel">...</span></label>
+        <input type="range" id="yearSlider" style="width: 300px;">
+      </div>
     </div>
-    <p>Global Evolution (choose a single year at a time with a slider)
-      Nodes: Energy Sources → Energy Consumption → Emissions
-      This requires transforming the electricity production into flows.
-    </p>
-
-    <p>Per each country, relate Energy use per capita -> electricity produced -> CO2 emissions per per-capita
-      A country consumes energy (per-capita-energy-use),
-      which is produced by different electricity sources (elecricity-prod-source-stacked),
-      which result in emissions levels (co-emissions-per-capita).
-      Globally or only Europe?
-    </p>
-
 
   </main>
-
 
   <script src="comparing_categories.js"></script>
   <script src="visualizing_distributions.js"></script>

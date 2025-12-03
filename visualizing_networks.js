@@ -1,191 +1,246 @@
-// --------------------------------------------------------
-// CONFIGURATION
-// --------------------------------------------------------
-const width = 1100;
-const height = 600;
+{
+    const width = 1200;
+    const height = 600;
 
-const svg = d3.select("#sankey_diagram")
-    .attr("width", width)
-    .attr("height", height);
+    const container = d3.select("#sankey_diagram");
+    container.selectAll("*").remove();
 
-const sankey = d3.sankey()
-    .nodeWidth(20)
-    .nodePadding(20)
-    .extent([[20, 20], [width - 20, height - 20]]);
+    const svg = container
+        .attr("width", width)
+        .attr("height", height);
 
-// Color scale for nodes
-const color = d3.scaleOrdinal(d3.schemeTableau10);
+    const sankey = d3.sankey()
+        .nodeWidth(25)
+        .nodePadding(15)
+        .extent([[10, 10], [width - 10, height - 10]])
+        .nodeAlign(d3.sankeyLeft);
 
-// Valid years
-const YEARS = d3.range(1980, 2025);
+    const colorSources = d3.scaleOrdinal(d3.schemeTableau10);
+    const colorCountries = d3.scaleOrdinal(d3.schemeObservable10);
 
-// --------------------------------------------------------
-// LOAD DATA
-// --------------------------------------------------------
-Promise.all([
-    d3.csv("co-emissions-per-capita.csv"),
-    d3.csv("per-capita-energy-use.csv"),
-    d3.csv("electricity-prod-source-stacked.csv")
-]).then(([co2, energy, elec]) => {
+    const getColor = (d) => {
+        if (d.category === "root") return "#555555";
+        if (d.category === "country") return colorCountries(d.name);
+        if (d.category === "source") return colorSources(d.name);
+        return "#ccc";
+    };
 
-    // --------------------------------------------
-    // 1. Preprocess CO2 per capita
-    // --------------------------------------------
-    const co2Global = d3.rollup(
-        co2,
-        v => d3.sum(v, d => +d["Annual CO₂ emissions (per capita)"] || 0),
-        d => +d.Year
-    );
+    const TARGET_COUNTRIES = new Set([
+        "Italy", "France", "Germany", "Spain", "United Kingdom",
+        "Sweden", "Norway", "Netherlands", "Greece", "Switzerland"
+    ]);
 
-    // --------------------------------------------
-    // 2. Preprocess energy use per capita
-    // --------------------------------------------
-    const energyGlobal = d3.rollup(
-        energy,
-        v => d3.sum(v, d => +d["Primary energy consumption per capita"] || 0),
-        d => +d.Year
-    );
+    const SOURCE_KEYS = {
+        "Other renewables excluding bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Other Renewables",
+        "Electricity from bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Bioenergy",
+        "Electricity from solar - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Solar",
+        "Electricity from wind - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Wind",
+        "Electricity from hydro - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Hydro",
+        "Electricity from nuclear - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Nuclear",
+        "Electricity from oil - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Oil",
+        "Electricity from gas - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Gas",
+        "Electricity from coal - TWh (adapted for visualization of chart electricity-prod-source-stacked)": "Coal"
+    };
 
-    // --------------------------------------------
-    // 3. Preprocess electricity production
-    //    SUM all countries → global values per source
-    // --------------------------------------------
-    const elecGlobal = d3.rollup(
-        elec,
-        v => ({
-            other: d3.sum(v, d => +d["Other renewables excluding bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            bio:   d3.sum(v, d => +d["Electricity from bioenergy - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            solar: d3.sum(v, d => +d["Electricity from solar - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            wind:  d3.sum(v, d => +d["Electricity from wind - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            hydro: d3.sum(v, d => +d["Electricity from hydro - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            nuclear: d3.sum(v, d => +d["Electricity from nuclear - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            oil:   d3.sum(v, d => +d["Electricity from oil - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            gas:   d3.sum(v, d => +d["Electricity from gas - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0),
-            coal:  d3.sum(v, d => +d["Electricity from coal - TWh (adapted for visualization of chart electricity-prod-source-stacked)"] || 0)
-        }),
-        d => +d.Year
-    );
+    d3.csv("data/electricity-prod-source-stacked.csv").then(data => {
 
-    // --------------------------------------------------------
-    // BUILD SANKEY FOR SPECIFIC YEAR
-    // --------------------------------------------------------
-    function buildSankey(year) {
-
-        svg.selectAll("*").remove(); // Clear previous frame
-
-        // --- energy + co2 for that year ---
-        const energyVal = energyGlobal.get(year) || 0;
-        const co2Val = co2Global.get(year) || 0;
-
-        // --- electricity mix for that year ---
-        const e = elecGlobal.get(year);
-        if (!e) return;
-
-        // ----------------------------------------
-        // NODES
-        // ----------------------------------------
-        const nodes = [
-            { name: "Other renewables" },
-            { name: "Bioenergy" },
-            { name: "Solar" },
-            { name: "Wind" },
-            { name: "Hydro" },
-            { name: "Nuclear" },
-            { name: "Oil" },
-            { name: "Gas" },
-            { name: "Coal" },
-            { name: "Total Energy Use" },
-            { name: "CO₂ Emissions" }
-        ];
-
-        // Node index helper
-        const idx = Object.fromEntries(nodes.map((d, i) => [d.name, i]));
-
-        // ----------------------------------------
-        // LINKS
-        // ----------------------------------------
-        const links = [
-            { source: idx["Other renewables"], target: idx["Total Energy Use"], value: e.other },
-            { source: idx["Bioenergy"],        target: idx["Total Energy Use"], value: e.bio },
-            { source: idx["Solar"],            target: idx["Total Energy Use"], value: e.solar },
-            { source: idx["Wind"],             target: idx["Total Energy Use"], value: e.wind },
-            { source: idx["Hydro"],            target: idx["Total Energy Use"], value: e.hydro },
-            { source: idx["Nuclear"],          target: idx["Total Energy Use"], value: e.nuclear },
-            { source: idx["Oil"],              target: idx["Total Energy Use"], value: e.oil },
-            { source: idx["Gas"],              target: idx["Total Energy Use"], value: e.gas },
-            { source: idx["Coal"],             target: idx["Total Energy Use"], value: e.coal },
-
-            // Total energy flows to CO2
-            { source: idx["Total Energy Use"], target: idx["CO₂ Emissions"], value: energyVal }
-        ];
-
-        const graph = sankey({
-            nodes: nodes.map(d => Object.assign({}, d)),
-            links: links.map(d => Object.assign({}, d))
+        data.forEach(d => {
+            d.Year = +d.Year;
+            Object.keys(SOURCE_KEYS).forEach(key => {
+                d[key] = +d[key] || 0;
+            });
         });
 
-        // ----------------------------------------
-        // DRAW LINKS
-        // ----------------------------------------
-        svg.append("g")
-            .selectAll("path")
-            .data(graph.links)
-            .join("path")
-            .attr("d", d3.sankeyLinkHorizontal())
-            .attr("stroke", d => color(d.source.name))
-            .attr("stroke-width", d => Math.max(1, d.width))
-            .attr("fill", "none")
-            .attr("opacity", 0.4);
+        function buildSankey(year) {
 
-        // ----------------------------------------
-        // DRAW NODES
-        // ----------------------------------------
-        const nodeGroup = svg.append("g")
-            .selectAll("g")
-            .data(graph.nodes)
-            .join("g");
+            svg.selectAll("*").remove();
 
-        nodeGroup.append("rect")
-            .attr("x", d => d.x0)
-            .attr("y", d => d.y0)
-            .attr("height", d => d.y1 - d.y0)
-            .attr("width", d => d.x1 - d.x0)
-            .attr("fill", d => color(d.name))
-            .attr("stroke", "#000");
+            let activeNode = null;
 
-        nodeGroup.append("text")
-            .attr("x", d => d.x0 - 6)
-            .attr("y", d => (d.y1 + d.y0) / 2)
-            .attr("text-anchor", "end")
-            .attr("dy", "0.35em")
-            .text(d => d.name)
-            .filter(d => d.x0 < width / 2)
-            .attr("x", d => d.x1 + 6)
-            .attr("text-anchor", "start");
+            d3.select("#chart-title")
+              .text(`Electricity production in European countries (${year})`)
+              .style("font-size", "24px")
+              .style("text-align", "center")
+              .style("font-family", "sans-serif");
 
-        // Title
-        svg.append("text")
-            .attr("x", 30)
-            .attr("y", 20)
-            .attr("font-size", "20px")
-            .attr("font-weight", "bold")
-            .text("Global Energy Flow, Year " + year);
-    }
+            let yearData = data.filter(d => d.Year === year && TARGET_COUNTRIES.has(d.Entity));
 
-    // --------------------------------------------------------
-    // SLIDER
-    // --------------------------------------------------------
-    const slider = d3.select("#yearSlider")
-        .attr("min", 1980)
-        .attr("max", 2024)
-        .attr("value", 1980)
-        .on("input", function () {
-            const year = +this.value;
-            buildSankey(year);
-            d3.select("#yearLabel").text(year);
-        });
+            yearData.forEach(d => {
+                d.totalProduction = Object.keys(SOURCE_KEYS).reduce((sum, key) => sum + d[key], 0);
+            });
 
-    // Initial draw
-    buildSankey(1980);
-    d3.select("#yearLabel").text("1980");
-});
+            yearData.sort((a, b) => b.totalProduction - a.totalProduction);
+
+            const selectedCountries = yearData;
+
+            if (selectedCountries.length === 0) {
+                svg.append("text").attr("x", width / 2).attr("y", height / 2).text("No data for these countries in " + year);
+                return;
+            }
+
+            // prepare nodes and links
+            const nodes = [];
+            const links = [];
+
+            const rootNodeName = `Total Production`;
+            nodes.push({ name: rootNodeName, category: "root" });
+            const rootIndex = 0;
+
+            selectedCountries.forEach(d => {
+                nodes.push({ name: d.Entity, category: "country" });
+            });
+
+            const countryIndices = new Map(selectedCountries.map((d, i) => [d.Entity, i + 1]));
+
+            const sourceNames = Object.values(SOURCE_KEYS);
+            const sourceStartIndex = nodes.length;
+
+            sourceNames.forEach(s => {
+                nodes.push({ name: s, category: "source" });
+            });
+
+            const sourceIndices = new Map(sourceNames.map((s, i) => [s, sourceStartIndex + i]));
+
+            selectedCountries.forEach(d => {
+                links.push({
+                    source: rootIndex,
+                    target: countryIndices.get(d.Entity),
+                    value: d.totalProduction
+                });
+            });
+
+            selectedCountries.forEach(d => {
+                const countryIdx = countryIndices.get(d.Entity);
+                Object.entries(SOURCE_KEYS).forEach(([csvKey, shortName]) => {
+                    const val = d[csvKey];
+                    if (val > 0.1) {
+                        links.push({
+                            source: countryIdx,
+                            target: sourceIndices.get(shortName),
+                            value: val
+                        });
+                    }
+                });
+            });
+
+            const graph = sankey({
+                nodes: nodes.map(d => Object.assign({}, d)),
+                links: links.map(d => Object.assign({}, d))
+            });
+
+            const linkGroup = svg.append("g")
+                .attr("fill", "none")
+                .style("mix-blend-mode", "multiply");
+
+            const linkData = linkGroup.selectAll("g")
+                .data(graph.links)
+                .join("g");
+
+            const gradient = linkData.append("linearGradient")
+                .attr("id", d => (d.uid = `link-${Math.random().toString(36).substr(2, 9)}`))
+                .attr("gradientUnits", "userSpaceOnUse")
+                .attr("x1", d => d.source.x1)
+                .attr("x2", d => d.target.x0);
+
+            gradient.append("stop").attr("offset", "0%").attr("stop-color", d => getColor(d.source));
+            gradient.append("stop").attr("offset", "100%").attr("stop-color", d => getColor(d.target));
+
+            const linkPath = linkData.append("path")
+                .attr("class", "sankey-link")
+                .attr("d", d3.sankeyLinkHorizontal())
+                .attr("stroke", d => `url(#${d.uid})`)
+                .attr("stroke-width", d => Math.max(1, d.width))
+                .attr("stroke-opacity", 0.5);
+
+            linkPath.append("title")
+                .text(d => `${d.source.name} - ${d.target.name}\n${d.value.toFixed(1)} TWh`);
+
+            const resetView = () => {
+                activeNode = null;
+                d3.selectAll(".sankey-link")
+                    .transition().duration(300)
+                    .attr("stroke", d => `url(#${d.uid})`)
+                    .style("stroke-opacity", 0.5);         
+            };
+
+            const node = svg.append("g")
+                .selectAll("rect")
+                .data(graph.nodes)
+                .join("rect")
+                .attr("x", d => d.x0).attr("y", d => d.y0)
+                .attr("height", d => d.y1 - d.y0).attr("width", d => d.x1 - d.x0)
+                .attr("fill", d => getColor(d))
+                .attr("stroke", "#333")
+                .style("cursor", "pointer");
+
+            node.append("title")
+                .text(d => `${d.name}\n${d.value.toFixed(1)} TWh`);
+
+            node.on("click", function(event, d) {
+                event.stopPropagation();
+
+                if (activeNode === d) {
+                    resetView();
+                    return;
+                }
+                activeNode = d;
+
+                d3.selectAll(".sankey-link")
+                    .transition().duration(300)
+                    .attr("stroke", link => {
+                        const isConnected = (link.source === d || link.target === d);
+                        return isConnected ? `url(#${link.uid})` : "#e0e0e0";
+                    })
+                    .style("stroke-opacity", link => {
+                        const isConnected = (link.source === d || link.target === d);
+                        return isConnected ? 0.8 : 0.1;
+                    });
+            });
+
+            svg.on("click", () => {
+                resetView();
+            });
+
+            // Labels
+            svg.append("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 11)
+                .selectAll("text")
+                .data(graph.nodes)
+                .join("text")
+                .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+                .attr("y", d => (d.y1 + d.y0) / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+                .text(d => d.name)
+                .style("font-weight", "bold")
+                .style("opacity", d => (d.y1 - d.y0) > 5 ? 1 : 0)
+                .style("pointer-events", "none");
+        }
+
+        const slider = d3.select("#yearSlider");
+        const label = d3.select("#yearLabel");
+
+        const minYear = d3.min(data, d => d.Year);
+        const maxYear = d3.max(data, d => d.Year);
+
+        if (!slider.empty()) {
+            slider
+                .attr("min", minYear)
+                .attr("max", maxYear)
+                .attr("value", 2020)
+                .on("input", function () {
+                    const year = +this.value;
+                    label.text(year);
+                    buildSankey(year);
+                });
+
+            label.text("2020");
+        }
+
+        buildSankey(2020);
+
+    }).catch(err => {
+        console.error("Error CSV:", err);
+    });
+}

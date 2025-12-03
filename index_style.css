@@ -182,6 +182,22 @@ p {
   justify-content: center;
 }
 
+.sankey {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.sankey-legend{
+  font-style: italic;
+  font-size: 0.8rem;
+  color: #555;
+  text-anchor: middle;
+  margin: 0;
+}
+
 .list_img ul {
   flex: 1;
   margin: 0;
