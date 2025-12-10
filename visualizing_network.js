@@ -34,7 +34,7 @@
     .attr("stroke", "none"); 
 
   const projection = d3.geoMercator()
-    .center([5, 48])
+    .center([5, 57])
     .scale(650)
     .translate([width / 2, height / 2]);
 
@@ -53,7 +53,6 @@
     .style("font-size", "12px")
     .style("z-index", 10);
 
-  // Rettangolo per reset click sfondo
   svg.append("rect")
     .attr("width", width)
     .attr("height", height)
