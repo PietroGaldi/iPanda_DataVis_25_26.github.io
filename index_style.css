@@ -190,6 +190,28 @@ p {
   margin-bottom: 3rem;
 }
 
+.network-box {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+}
+
+.network-title{
+  font-size: 24px;
+  text-align: center;
+  font-family: sans-serif;
+}
+
+.network {
+  max-width: 60rem;
+  margin: em auto;
+  padding-right: 7rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
 .sankey-legend{
   font-style: italic;
   font-size: 0.8rem;
